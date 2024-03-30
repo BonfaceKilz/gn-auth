@@ -253,8 +253,7 @@ def link_data_to_resource(
         "mrna": mrna_link_data_to_resource,
         "genotype": genotype_link_data_to_resource,
         "phenotype": phenotype_link_data_to_resource,
-    }[dataset_type.lower()](
-        conn, resource, resource_owner(conn, resource), data_link_id)
+    }[dataset_type.lower()](conn, resource, data_link_id)
 
 def unlink_data_from_resource(
         conn: db.DbConnection, user: User, resource_id: UUID, data_link_id: UUID):

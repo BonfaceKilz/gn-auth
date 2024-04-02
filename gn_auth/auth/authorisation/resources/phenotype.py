@@ -28,18 +28,16 @@ def resource_data(
 def link_data_to_resource(
         conn: db.DbConnection,
         resource: Resource,
-        group: Group,
         data_link_id: uuid.UUID) -> dict:
     """Link Phenotype data with a resource."""
     with db.cursor(conn) as cursor:
         params = {
-            "group_id": str(group.group_id),
             "resource_id": str(resource.resource_id),
             "data_link_id": str(data_link_id)
         }
         cursor.execute(
             "INSERT INTO phenotype_resources VALUES"
-            "(:group_id, :resource_id, :data_link_id)",
+            "(:resource_id, :data_link_id)",
             params)
         return params
 

@@ -14,6 +14,7 @@ from .models.oauth2token import OAuth2Token, save_token
 
 from .grants.password_grant import PasswordGrant
 from .grants.authorisation_code_grant import AuthorisationCodeGrant
+from .grants.jwt_bearer_grant import JWTBearerGrant, JWTBearerTokenGenerator
 
 from .endpoints.revocation import RevocationEndpoint
 from .endpoints.introspection import IntrospectionEndpoint
@@ -58,6 +59,11 @@ def setup_oauth2_server(app: Flask) -> None:
     # server.register_grant(AuthorisationCodeGrant, [CodeChallenge(required=False)])
     # below
     server.register_grant(AuthorisationCodeGrant)
+
+    server.register_grant(JWTBearerGrant)
+    server.register_token_generator(
+        "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        JWTBearerTokenGenerator(app.config["JWT_PRIVATE_KEY"]))
 
     # register endpoints
     server.register_endpoint(RevocationEndpoint)

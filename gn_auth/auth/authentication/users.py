@@ -17,6 +17,10 @@ class User:
     email: str
     name: str
 
+    def get_user_id(self):
+        """Get the user's ID."""
+        return self.user_id
+
 
 DUMMY_USER = User(user_id=UUID("a391cf60-e8b7-4294-bd22-ddbbda4b3530"),
                   email="gn3@dummy.user",

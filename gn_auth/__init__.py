@@ -7,6 +7,7 @@ from typing import Optional
 
 from flask import Flask
 from flask_cors import CORS
+from authlib.jose import JsonWebKey
 
 from gn_auth.misc_views import misc
 from gn_auth.auth.views import oauth2
@@ -24,7 +25,8 @@ def check_mandatory_settings(app: Flask) -> None:
     undefined = tuple(
         setting for setting in (
             "SECRET_KEY", "SQL_URI", "AUTH_DB", "AUTH_MIGRATIONS",
-            "OAUTH2_SCOPE")
+            "OAUTH2_SCOPE", "SSL_KEY_PAIR_PRIVATE_KEY",
+            "SSL_KEY_PAIR_PUBLIC_KEY")
         if not ((setting in app.config) and bool(app.config[setting])))
     if len(undefined) > 0:
         raise ConfigurationError(
@@ -58,6 +60,16 @@ def load_secrets_conf(app: Flask) -> None:
                 "You must provide a path to an existing secrets file.")
         app.config.from_pyfile(secretsfile)
 
+
+def parse_ssl_key_pair(app):
+    def __parse_key__(keypathconfig: str, configkey: Optional[str]):
+        configkey = configkey or keypathconfig
+        with open(app.config[keypathconfig]) as _sslkey:
+            app.config[configkey] = JsonWebKey.import_key(_sslkey.read())
+
+    __parse_key__("SSL_KEY_PAIR_PUBLIC_KEY", "JWT_PUBLIC_KEY")
+    __parse_key__("SSL_KEY_PAIR_PRIVATE_KEY", "JWT_PRIVATE_KEY")
+
 def create_app(config: Optional[dict] = None) -> Flask:
     """Create and return a new flask application."""
     app = Flask(__name__)
@@ -73,6 +85,7 @@ def create_app(config: Optional[dict] = None) -> Flask:
     override_settings_with_envvars(app)
 
     load_secrets_conf(app)
+    parse_ssl_key_pair(app)
     # ====== END: Setup configuration ======
 
     check_mandatory_settings(app)

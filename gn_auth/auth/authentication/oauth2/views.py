@@ -48,7 +48,7 @@ def authorise():
                 "oauth2/authorise-user.html",
                 client=client,
                 scope=client.scope,
-                response_type="code")
+                response_type=request.args["response_type"])
 
         form = request.form
         def __authorise__(conn: db.DbConnection) -> Response:

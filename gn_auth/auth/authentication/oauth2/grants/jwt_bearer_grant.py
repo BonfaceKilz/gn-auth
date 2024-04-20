@@ -14,7 +14,6 @@ from authlib.oauth2.rfc7523.token import (
 from gn_auth.auth.authentication.users import user_by_id
 from gn_auth.auth.db.sqlite3 import connection, with_db_connection
 from gn_auth.auth.authentication.oauth2.models.oauth2client import client
-from gn_auth.auth.authentication.oauth2.grants.authorisation_code_grant import AuthorisationCodeGrant
 
 
 class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
@@ -36,34 +35,10 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
             "sub": str(tokendata["sub"])}
 
 
-class JWTBearerGrant(_JWTBearerGrant, AuthorisationCodeGrant):
+class JWTBearerGrant(_JWTBearerGrant):
     """Implement JWT as Authorisation Grant."""
 
-
-    def create_authorization_response(self, redirect_uri: str, grant_user):
-        resp = super().create_authorization_response(redirect_uri, grant_user)
-        headers = dict(resp[2])
-        location = urlparse(headers["Location"])
-        query = {
-            key.strip(): value.strip() for key, value in
-            (item.split("=") for  item in
-             (param.strip() for param in location.query.split("&")))}
-        parsed_redirect = urlparse(redirect_uri)
-        issued = datetime.now()
-        jwtkey = app.config["JWT_PRIVATE_KEY"]
-        jwttoken = jwt.encode(
-            {"alg": "RS256", "typ": "jwt", "kid": jwtkey.kid},
-            {
-                "iss": str(self.client.client_id),
-                "sub": str(grant_user.user_id),
-                "aud": f"{parsed_redirect.scheme}://{parsed_redirect.netloc}",
-                "exp": (issued + timedelta(minutes=5)),
-                "nbf": int(issued.timestamp()),
-                "iat": int(issued.timestamp()),
-                "jti": str(uuid.uuid4()),
-                "code": query["code"]},
-            jwtkey).decode("utf8")
-        return (302, "", [("Location", f"{location.geturl()}&jwt={jwttoken}")])
+    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_post", "client_secret_jwt"]
 
 
     def resolve_issuer_client(self, issuer):

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from flask import request, current_app as app
 
 from authlib.jose import jwt
-from authlib.jose.rfc7517.key_set import KeySet
+
 from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant
 from authlib.oauth2.rfc7523.token import (
     JWTBearerTokenGenerator as _JWTBearerTokenGenerator)

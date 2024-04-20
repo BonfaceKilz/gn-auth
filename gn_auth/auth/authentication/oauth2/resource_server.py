@@ -15,5 +15,3 @@ class BearerTokenValidator(_BearerTokenValidator):
                 None, lambda tok: tok)
 
 require_oauth = ResourceProtector()
-
-require_oauth.register_token_validator(BearerTokenValidator())

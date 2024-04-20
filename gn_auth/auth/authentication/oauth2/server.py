@@ -4,6 +4,7 @@ import datetime
 from typing import Callable
 
 from flask import Flask, current_app
+from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 
@@ -18,6 +19,8 @@ from .grants.jwt_bearer_grant import JWTBearerGrant, JWTBearerTokenGenerator
 
 from .endpoints.revocation import RevocationEndpoint
 from .endpoints.introspection import IntrospectionEndpoint
+
+from .resource_server import require_oauth, BearerTokenValidator
 
 def create_query_client_func() -> Callable:
     """Create the function that loads the client."""
@@ -75,3 +78,8 @@ def setup_oauth2_server(app: Flask) -> None:
         query_client=create_query_client_func(),
         save_token=create_save_token_func(OAuth2Token))
     app.config["OAUTH2_SERVER"] = server
+
+    ## Set up the token validators
+    require_oauth.register_token_validator(BearerTokenValidator())
+    require_oauth.register_token_validator(
+        JWTBearerTokenValidator(app.config["JWT_PUBLIC_KEY"]))

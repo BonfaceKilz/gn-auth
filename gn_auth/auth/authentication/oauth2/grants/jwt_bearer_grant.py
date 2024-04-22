@@ -49,7 +49,7 @@ class JWTBearerGrant(_JWTBearerGrant):
 
     def resolve_client_key(self, client, headers, payload):
         """Resolve client key to decode assertion data."""
-        return app.config["JWT_PUBLIC_KEY"]
+        return app.config["SSL_PUBLIC_KEYS"].get(headers["kid"])
 
 
     def authenticate_user(self, subject):

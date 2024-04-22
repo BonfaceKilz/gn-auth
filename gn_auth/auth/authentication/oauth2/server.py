@@ -66,7 +66,7 @@ def setup_oauth2_server(app: Flask) -> None:
     server.register_grant(JWTBearerGrant)
     server.register_token_generator(
         "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        JWTBearerTokenGenerator(app.config["JWT_PRIVATE_KEY"]))
+        JWTBearerTokenGenerator(app.config["SSL_PRIVATE_KEY"]))
 
     # register endpoints
     server.register_endpoint(RevocationEndpoint)
@@ -82,4 +82,4 @@ def setup_oauth2_server(app: Flask) -> None:
     ## Set up the token validators
     require_oauth.register_token_validator(BearerTokenValidator())
     require_oauth.register_token_validator(
-        JWTBearerTokenValidator(app.config["JWT_PUBLIC_KEY"]))
+        JWTBearerTokenValidator(app.config["SSL_PRIVATE_KEY"].get_public_key()))

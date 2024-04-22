@@ -29,6 +29,6 @@ CORS_HEADERS = [
     "Access-Control-Allow-Credentials"
 ]
 
-# OpenSSL Key-Pair
-SSL_KEY_PAIR_PRIVATE_KEY = ""
-SSL_KEY_PAIR_PUBLIC_KEY = ""
+# OpenSSL keys
+CLIENTS_SSL_PUBLIC_KEYS_DIR = "" # keys from registered clients
+SSL_PRIVATE_KEY = "" # authorisation server primary key

@@ -60,20 +60,23 @@ def load_secrets_conf(app: Flask) -> None:
         app.config.from_pyfile(secretsfile)
 
 
-def parse_ssl_public_keys(app):
+def parse_ssl_keys(app):
+    """Parse the SSL keys."""
     def __parse_key__(keypath: Path) -> JsonWebKey:
         with open(keypath) as _sslkey:
             return JsonWebKey.import_key(_sslkey.read())
 
     key_storage_dir = Path(app.config["UPLOADS_DIR"]).joinpath(
         "clients-ssl-keys")
+    key_storage_dir.mkdir(exist_ok=True)
     app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"] = key_storage_dir
     app.config["SSL_PUBLIC_KEYS"] = {
         _key.as_dict()["kid"]: _key for _key in (
             __parse_key__(Path(key_storage_dir).joinpath(key))
             for key in os.listdir(key_storage_dir))}
 
-    app.config["SSL_PRIVATE_KEY"] = __parse_key__(app.config["SSL_PRIVATE_KEY"])
+    app.config["SSL_PRIVATE_KEY"] = __parse_key__(
+        Path(app.config["SSL_PRIVATE_KEY"]))
 
 def create_app(config: Optional[dict] = None) -> Flask:
     """Create and return a new flask application."""
@@ -90,7 +93,7 @@ def create_app(config: Optional[dict] = None) -> Flask:
     override_settings_with_envvars(app)
 
     load_secrets_conf(app)
-    parse_ssl_public_keys(app)
+    parse_ssl_keys(app)
     # ====== END: Setup configuration ======
 
     check_mandatory_settings(app)

@@ -65,7 +65,9 @@ def parse_ssl_public_keys(app):
         with open(keypath) as _sslkey:
             return JsonWebKey.import_key(_sslkey.read())
 
-    key_storage_dir = app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"]
+    key_storage_dir = Path(app.config["UPLOADS_DIR"]).joinpath(
+        "clients-ssl-keys")
+    app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"] = key_storage_dir
     app.config["SSL_PUBLIC_KEYS"] = {
         _key.as_dict()["kid"]: _key for _key in (
             __parse_key__(Path(key_storage_dir).joinpath(key))

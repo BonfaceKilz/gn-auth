@@ -29,6 +29,7 @@ CORS_HEADERS = [
     "Access-Control-Allow-Credentials"
 ]
 
+UPLOADS_DIR = ""
+
 # OpenSSL keys
-CLIENTS_SSL_PUBLIC_KEYS_DIR = "" # keys from registered clients
 SSL_PRIVATE_KEY = "" # authorisation server primary key

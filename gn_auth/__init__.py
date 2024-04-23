@@ -25,7 +25,7 @@ def check_mandatory_settings(app: Flask) -> None:
     undefined = tuple(
         setting for setting in (
             "SECRET_KEY", "SQL_URI", "AUTH_DB", "AUTH_MIGRATIONS",
-            "OAUTH2_SCOPE", "SSL_PRIVATE_KEY", "CLIENTS_SSL_PUBLIC_KEYS_DIR")
+            "OAUTH2_SCOPE", "SSL_PRIVATE_KEY", "UPLOADS_DIR")
         if not ((setting in app.config) and bool(app.config[setting])))
     if len(undefined) > 0:
         raise ConfigurationError(

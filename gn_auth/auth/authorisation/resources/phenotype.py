@@ -6,7 +6,6 @@ import sqlite3
 
 import gn_auth.auth.db.sqlite3 as db
 
-from .groups import Group
 from .base import Resource
 from .data import __attach_data__
 

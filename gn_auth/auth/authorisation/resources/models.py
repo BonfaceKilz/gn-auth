@@ -15,8 +15,7 @@ from gn_auth.auth.authorisation.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
 from .base import Resource, ResourceCategory
-from .groups.models import (
-    Group, GroupRole, user_group, resource_owner, is_group_leader)
+from .groups.models import Group, GroupRole, user_group, is_group_leader
 from .mrna import (
     resource_data as mrna_resource_data,
     attach_resources_data as mrna_attach_resources_data,

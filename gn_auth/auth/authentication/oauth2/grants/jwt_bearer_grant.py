@@ -1,19 +1,12 @@
 """JWT as Authorisation Grant"""
-import uuid
-from urllib.parse import urlparse
-from datetime import datetime, timedelta
-
-from flask import request, current_app as app
-
-from authlib.jose import jwt
+from flask import current_app as app
 
 from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant
 from authlib.oauth2.rfc7523.token import (
     JWTBearerTokenGenerator as _JWTBearerTokenGenerator)
 
+from gn_auth.auth.db.sqlite3 import with_db_connection
 from gn_auth.auth.authentication.users import user_by_id
-from gn_auth.auth.db.sqlite3 import connection, with_db_connection
-from gn_auth.auth.authentication.oauth2.models.oauth2client import client
 
 
 class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
@@ -23,7 +16,9 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
 
     DEFAULT_EXPIRES_IN = 300
 
-    def get_token_data(self, grant_type, client, expires_in=300, user=None, scope=None):
+    def get_token_data(#pylint: disable=[too-many-arguments]
+            self, grant_type, client, expires_in=300, user=None, scope=None
+    ):
         """Post process data to prevent JSON serialization problems."""
         tokendata = super().get_token_data(
             grant_type, client, expires_in, user, scope)

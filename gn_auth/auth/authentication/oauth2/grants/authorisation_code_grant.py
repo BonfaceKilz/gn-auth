@@ -26,16 +26,16 @@ class AuthorisationCodeGrant(grants.AuthorizationCodeGrant):
     GRANT_TYPE = "authorization_code"
     RESPONSE_TYPES = {'code'}
 
-    def create_authorization_response(self, redirect: str, grant_user):
+    def create_authorization_response(self, redirect_uri: str, grant_user):
         """Add some data to the URI"""
-        response = super().create_authorization_response(redirect, grant_user)
+        response = super().create_authorization_response(
+            redirect_uri, grant_user)
         headers = dict(response[-1])
         headers = {
             **headers,
             "Location": f"{headers['Location']}&user_id={grant_user.user_id}"
         }
-        return (response[0], response[1], [
-            (header, value) for header, value in headers.items()])
+        return (response[0], response[1], list(headers.items()))
 
     def save_authorization_code(self, code, request):
         """Persist the authorisation code to database."""

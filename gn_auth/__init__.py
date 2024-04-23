@@ -63,7 +63,7 @@ def load_secrets_conf(app: Flask) -> None:
 def parse_ssl_keys(app):
     """Parse the SSL keys."""
     def __parse_key__(keypath: Path) -> JsonWebKey:
-        with open(keypath) as _sslkey:
+        with open(keypath) as _sslkey:# pylint: disable=[unspecified-encoding]
             return JsonWebKey.import_key(_sslkey.read())
 
     key_storage_dir = Path(app.config["UPLOADS_DIR"]).joinpath(

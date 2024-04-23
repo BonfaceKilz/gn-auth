@@ -1,4 +1,5 @@
 """Fixtures for unit tests."""
+import os
 from pathlib import Path
 from datetime import datetime
 from tempfile import TemporaryDirectory
@@ -14,10 +15,15 @@ def fxtr_app():
     with TemporaryDirectory() as testdir:
         testdb = Path(testdir).joinpath(
             f'testdb_{datetime.now().strftime("%Y%m%dT%H%M%S")}')
+        testuploadsdir = Path(testdir).joinpath("uploads")
+        testuploadsdir.mkdir()
         app = create_app({
-            "TESTING": True, "AUTH_DB": testdb,
+            "TESTING": True,
+            "AUTH_DB": testdb,
             "OAUTH2_ACCESS_TOKEN_GENERATOR": "tests.unit.auth.test_token.gen_token",
-            "SECRET_KEY": "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk"
+            "SECRET_KEY": "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk",
+            "UPLOADS_DIR": testuploadsdir,
+            "SSL_PRIVATE_KEY": f"{os.path.dirname(__file__)}/test-ssl-private-key.pem"
         })
         app.testing = True
         yield app

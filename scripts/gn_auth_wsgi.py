@@ -1,13 +1,16 @@
 """Main entry point for project"""
+import os
 import sys
 import uuid
 import json
+import logging
 from math import ceil
 from pathlib import Path
+from typing import Callable
 from datetime import datetime
 
-
 import click
+from flask import Flask
 from yoyo import get_backend, read_migrations
 
 from gn_auth import migrations
@@ -22,7 +25,37 @@ from gn_auth.auth.authorisation.users.admin.models import make_sys_admin
 from scripts import register_sys_admin as rsysadm# type: ignore[import]
 from scripts import migrate_existing_data as med# type: ignore[import]
 
-app = create_app()
+
+def dev_loggers(appl: Flask) -> None:
+    """Setup the logging handlers."""
+    stderr_handler = logging.StreamHandler(stream=sys.stderr)
+    appl.logger.addHandler(stderr_handler)
+
+    root_logger = logging.getLogger()
+    root_logger.addHandler(stderr_handler)
+    root_logger.setLevel(appl.config["LOGLEVEL"])
+
+
+def gunicorn_loggers(appl: Flask) -> None:
+    """Use gunicorn logging handlers for the application."""
+    logger = logging.getLogger("gunicorn.error")
+    appl.logger.handlers = logger.handlers
+    appl.logger.setLevel(logger.level)
+
+
+def setup_loggers() -> Callable[[Flask], None]:
+    """
+    Setup the loggers according to the WSGI server used to run the application.
+    """
+    # https://datatracker.ietf.org/doc/html/draft-coar-cgi-v11-03#section-4.1.17
+    # https://wsgi.readthedocs.io/en/latest/proposals-2.0.html#making-some-keys-required
+    # https://peps.python.org/pep-3333/#id4
+    software, *_version_and_comments = os.environ.get(
+        "SERVER_SOFTWARE", "").split('/')
+    return gunicorn_loggers if bool(software) else dev_loggers
+
+# app = create_app()
+app = create_app(setup_logging=setup_loggers())
 
 ##### BEGIN: CLI Commands #####
 

@@ -1,9 +1,8 @@
 """Application initialisation module."""
 import os
 import sys
-import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable
 
 from flask import Flask
 from flask_cors import CORS
@@ -38,14 +37,6 @@ def override_settings_with_envvars(
     for setting in (key for key in app.config if key not in ignore):
         app.config[setting] = os.environ.get(setting) or app.config[setting]
 
-def setup_logging_handlers(app: Flask) -> None:
-    """Setup the loggging handlers."""
-    stderr_handler = logging.StreamHandler(stream=sys.stderr)
-    app.logger.addHandler(stderr_handler)
-
-    root_logger = logging.getLogger()
-    root_logger.addHandler(stderr_handler)
-    root_logger.setLevel(app.config["LOGLEVEL"])
 
 def load_secrets_conf(app: Flask) -> None:
     """Load the secrets file."""
@@ -78,7 +69,10 @@ def parse_ssl_keys(app):
     app.config["SSL_PRIVATE_KEY"] = __parse_key__(
         Path(app.config["SSL_PRIVATE_KEY"]))
 
-def create_app(config: Optional[dict] = None) -> Flask:
+def create_app(
+        config: Optional[dict] = None,
+        setup_logging: Callable[[Flask], None] = lambda appl: None
+) -> Flask:
     """Create and return a new flask application."""
     app = Flask(__name__)
 
@@ -96,9 +90,9 @@ def create_app(config: Optional[dict] = None) -> Flask:
     parse_ssl_keys(app)
     # ====== END: Setup configuration ======
 
+    setup_logging(app)
     check_mandatory_settings(app)
 
-    setup_logging_handlers(app)
     setup_oauth2_server(app)
 
     CORS(

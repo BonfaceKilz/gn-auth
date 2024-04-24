@@ -11,12 +11,11 @@ from authlib.oauth2.rfc6749 import ClientMixin
 from pymonad.maybe import Just, Maybe, Nothing
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import (User,
                                                fetch_users,
                                                user_by_id,
                                                same_password)
-
-from gn_auth.auth.authorisation.errors import NotFoundError
 
 
 @dataclass(frozen=True)

@@ -11,7 +11,7 @@ from gn_auth.auth.db.sqlite3 import with_db_connection
 from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.authorisation.checks import authorised_p
-from gn_auth.auth.authorisation.errors import NotFoundError, AuthorisationError
+from gn_auth.auth.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
 from .base import Resource, ResourceCategory

@@ -5,10 +5,10 @@ import pytest
 from pymonad.maybe import Nothing
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import AuthorisationError
 from gn_auth.auth.authentication.users import User
 from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.privileges import Privilege
-from gn_auth.auth.authorisation.errors import AuthorisationError
 from gn_auth.auth.authorisation.resources.groups.models import (
     Group, GroupRole, user_group, create_group, create_group_role)
 

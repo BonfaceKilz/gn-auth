@@ -10,8 +10,8 @@ from pymonad.tools import monad_from_none_or_value
 from pymonad.maybe import Just, Maybe, Nothing
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import User, user_by_id
-from gn_auth.auth.authorisation.errors import NotFoundError
 
 from .oauth2client import client, OAuth2Client
 

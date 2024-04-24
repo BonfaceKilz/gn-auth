@@ -4,8 +4,8 @@ import uuid
 import pytest
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import AuthorisationError
 from gn_auth.auth.authorisation.privileges import Privilege
-from gn_auth.auth.authorisation.errors import AuthorisationError
 from gn_auth.auth.authorisation.roles.models import Role, user_roles, create_role
 
 from tests.unit.auth import conftest

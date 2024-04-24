@@ -14,7 +14,7 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
-from gn_auth.auth.authorisation.errors import InvalidData, InconsistencyError, AuthorisationError
+from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, user_by_id, user_by_email

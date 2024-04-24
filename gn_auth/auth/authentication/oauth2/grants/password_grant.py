@@ -4,9 +4,8 @@ from flask import current_app as app
 from authlib.oauth2.rfc6749 import grants
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import valid_login, user_by_email
-
-from gn_auth.auth.authorisation.errors import NotFoundError
 
 class PasswordGrant(grants.ResourceOwnerPasswordCredentialsGrant):
     """Implement the 'Password' grant."""

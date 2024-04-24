@@ -7,12 +7,13 @@ from typing import Sequence, Iterable
 
 from pymonad.either import Left, Right, Either
 
+from gn_auth.auth.errors import NotFoundError, AuthorisationError
+
 from ...db import sqlite3 as db
 from ...authentication.users import User
 
 from ..checks import authorised_p
 from ..privileges import Privilege
-from ..errors import NotFoundError, AuthorisationError
 
 
 @dataclass(frozen=True)

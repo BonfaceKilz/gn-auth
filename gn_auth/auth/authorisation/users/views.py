@@ -14,7 +14,7 @@ from gn_auth.auth.authorisation.resources.models import (
     user_resources as _user_resources)
 from gn_auth.auth.authorisation.roles.models import (
     assign_default_roles, user_roles as _user_roles)
-from gn_auth.auth.authorisation.errors import (
+from gn_auth.auth.errors import (
     NotFoundError, UsernameError, PasswordError, UserRegistrationError)
 from gn_auth.auth.authorisation.resources.groups.models import (
     user_group as _user_group)

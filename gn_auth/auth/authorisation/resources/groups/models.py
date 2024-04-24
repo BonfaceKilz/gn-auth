@@ -15,7 +15,7 @@ from gn_auth.auth.authorisation.checks import authorised_p
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.authorisation.resources.base import Resource
 from gn_auth.auth.authorisation.resources.errors import MissingGroupError
-from gn_auth.auth.authorisation.errors import (
+from gn_auth.auth.errors import (
     NotFoundError, AuthorisationError, InconsistencyError)
 from gn_auth.auth.authorisation.roles.models import (
     Role, create_role, check_user_editable, revoke_user_role_by_name,

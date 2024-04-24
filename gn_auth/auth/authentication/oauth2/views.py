@@ -16,13 +16,13 @@ from flask import (
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
-from gn_auth.auth.authorisation.errors import ForbiddenAccess
+from gn_auth.auth.errors import NotFoundError, ForbiddenAccess
+from gn_auth.auth.authentication.users import valid_login, user_by_email
 
 from .resource_server import require_oauth
 from .endpoints.revocation import RevocationEndpoint
 from .endpoints.introspection import IntrospectionEndpoint
 
-from ..users import valid_login, NotFoundError, user_by_email
 
 auth = Blueprint("auth", __name__)
 

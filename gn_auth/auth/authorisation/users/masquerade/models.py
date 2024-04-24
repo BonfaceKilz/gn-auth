@@ -6,9 +6,9 @@ from datetime import datetime
 from flask import current_app as app
 
 
-from ...errors import ForbiddenAccess
-from ...roles.models import user_roles
+from gn_auth.auth.errors import ForbiddenAccess
 
+from ...roles.models import user_roles
 from ....db import sqlite3 as db
 from ....authentication.users import User
 from ....authentication.oauth2.models.oauth2token import (

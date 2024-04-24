@@ -19,7 +19,7 @@ from gn_auth.auth.authorisation.roles.models import user_roles
 
 from gn_auth.auth.authorisation.checks import authorised_p
 from gn_auth.auth.authorisation.privileges import Privilege, privileges_by_ids
-from gn_auth.auth.authorisation.errors import InvalidData, NotFoundError, AuthorisationError
+from gn_auth.auth.errors import InvalidData, NotFoundError, AuthorisationError
 
 from gn_auth.auth.authentication.users import User
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth

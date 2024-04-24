@@ -4,9 +4,9 @@ from typing import Callable
 
 from flask import request, current_app as app
 
-from . import privileges as auth_privs
-from .errors import InvalidData, AuthorisationError
+from gn_auth.auth.errors import InvalidData, AuthorisationError
 
+from . import privileges as auth_privs
 from ..db import sqlite3 as db
 from ..authentication.oauth2.resource_server import require_oauth
 

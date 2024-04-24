@@ -17,9 +17,8 @@ from gn_auth import migrations
 from gn_auth import create_app
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import user_by_id, hash_password
-
-from gn_auth.auth.authorisation.errors import NotFoundError
 from gn_auth.auth.authorisation.users.admin.models import make_sys_admin
 
 from scripts import register_sys_admin as rsysadm# type: ignore[import]

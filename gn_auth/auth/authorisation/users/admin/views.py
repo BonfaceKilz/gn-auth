@@ -18,7 +18,7 @@ from flask import (
 
 
 from gn_auth import session
-from gn_auth.auth.authorisation.errors import NotFoundError
+from gn_auth.auth.errors import NotFoundError
 
 from ....db import sqlite3 as db
 from ....db.sqlite3 import with_db_connection

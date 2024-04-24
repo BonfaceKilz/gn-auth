@@ -7,7 +7,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from gn_auth.auth.db import sqlite3 as db
-from gn_auth.auth.authorisation.errors import NotFoundError
+from gn_auth.auth.errors import NotFoundError
 
 
 @dataclass(frozen=True)

@@ -4,6 +4,8 @@ from uuid import UUID
 from redis import Redis
 from flask import jsonify, request, Response, Blueprint, current_app
 
+from gn_auth.auth.errors import NotFoundError
+
 from ....db import sqlite3 as db
 from ....db.sqlite3 import with_db_connection
 
@@ -11,7 +13,6 @@ from ....authentication.users import User, user_by_id
 from ....authentication.oauth2.resource_server import require_oauth
 
 from ...checks import require_json
-from ...errors import NotFoundError
 
 from .models import (
     add_traits,

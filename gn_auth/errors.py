@@ -4,7 +4,7 @@ import traceback
 from werkzeug.exceptions import NotFound
 from flask import Flask, request, jsonify, current_app, render_template
 
-from gn_auth.auth.authorisation.errors import AuthorisationError
+from gn_auth.auth.errors import AuthorisationError
 
 def add_trace(exc: Exception, errobj: dict) -> dict:
     """Add the traceback to the error handling object."""

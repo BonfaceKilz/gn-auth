@@ -24,7 +24,7 @@ def check_mandatory_settings(app: Flask) -> None:
     undefined = tuple(
         setting for setting in (
             "SECRET_KEY", "SQL_URI", "AUTH_DB", "AUTH_MIGRATIONS",
-            "OAUTH2_SCOPE", "SSL_PRIVATE_KEY", "UPLOADS_DIR")
+            "OAUTH2_SCOPE", "SSL_PRIVATE_KEY", "CLIENTS_SSL_PUBLIC_KEYS_DIR")
         if not ((setting in app.config) and bool(app.config[setting])))
     if len(undefined) > 0:
         raise ConfigurationError(
@@ -57,10 +57,8 @@ def parse_ssl_keys(app):
         with open(keypath) as _sslkey:# pylint: disable=[unspecified-encoding]
             return JsonWebKey.import_key(_sslkey.read())
 
-    key_storage_dir = Path(app.config["UPLOADS_DIR"]).joinpath(
-        "clients-ssl-keys")
+    key_storage_dir = Path(app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"])
     key_storage_dir.mkdir(exist_ok=True)
-    app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"] = key_storage_dir
     app.config["SSL_PUBLIC_KEYS"] = {
         _key.as_dict()["kid"]: _key for _key in (
             __parse_key__(Path(key_storage_dir).joinpath(key))

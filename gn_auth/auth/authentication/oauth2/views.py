@@ -41,7 +41,8 @@ def authorise():
             request.form.get("client_id", str(uuid.uuid4()))))
         client = server.query_client(client_id)
         if not bool(client):
-            flash("Invalid OAuth2 client.", "alert-error")
+            flash("Invalid OAuth2 client.", "alert-danger")
+
         if request.method == "GET":
             client = server.query_client(request.args.get("client_id"))
             return render_template(
@@ -64,15 +65,15 @@ def authorise():
                 user = user_by_email(conn, email["email"])
                 if valid_login(conn, user, form.get("user:password", "")):
                     return server.create_authorization_response(request=request, grant_user=user)
-                flash(email_passwd_msg, "alert-error")
+                flash(email_passwd_msg, "alert-danger")
                 return redirect_response # type: ignore[return-value]
             except EmailNotValidError as _enve:
                 app.logger.debug(traceback.format_exc())
-                flash(email_passwd_msg, "alert-error")
+                flash(email_passwd_msg, "alert-danger")
                 return redirect_response # type: ignore[return-value]
             except NotFoundError as _nfe:
                 app.logger.debug(traceback.format_exc())
-                flash(email_passwd_msg, "alert-error")
+                flash(email_passwd_msg, "alert-danger")
                 return redirect_response # type: ignore[return-value]
 
         return with_db_connection(__authorise__)

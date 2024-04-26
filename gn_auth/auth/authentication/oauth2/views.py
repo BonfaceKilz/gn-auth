@@ -48,13 +48,16 @@ def authorise():
                 "oauth2/authorise-user.html",
                 client=client,
                 scope=client.scope,
-                response_type=request.args["response_type"])
+                response_type=request.args["response_type"],
+                redirect_uri=request.args["redirect_uri"])
 
         form = request.form
         def __authorise__(conn: db.DbConnection) -> Response:
             email_passwd_msg = "Email or password is invalid!"
             redirect_response = redirect(url_for("oauth2.auth.authorise",
-                                                 client_id=client_id))
+                                                 response_type=form["response_type"],
+                                                 client_id=client_id,
+                                                 redirect_uri=form["redirect_uri"]))
             try:
                 email = validate_email(
                     form.get("user:email"), check_deliverability=False)

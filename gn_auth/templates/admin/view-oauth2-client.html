@@ -36,7 +36,8 @@
     <br />
     <input type="text" name="redirect_uri" id="txt-redirect-uri"
 	   value="{{client.client_metadata.default_redirect_uri}}"
-	   required="required">
+	   required="required"
+           class="form-control" />
     <br /><br />
 
     <label for="txta:other-redirect-uris">Other Redirect URIs</label>
@@ -65,7 +66,7 @@
       {%endfor%}
   </fieldset>
 
-  <input type="submit" value="update client" />
+  <input type="submit" class="btn btn-primary" value="update client" />
 </form>
 
 <hr />

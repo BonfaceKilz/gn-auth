@@ -46,6 +46,17 @@ admin = Blueprint("admin", __name__)
 class RegisterClientError(Exception):
     """Error to raise in case of client registration issues"""
 
+_FORM_GRANT_TYPES_ = ({
+    "name": "Authorization Code",
+    "value": "authorization_code"
+}, {
+    "name": "Refresh Token",
+    "value": "refresh_token"
+}, {
+    "name": "JWT Bearer Token",
+    "value": "urn:ietf:params:oauth:grant-type:jwt-bearer"
+})
+
 @admin.before_request
 def update_expires():
     """Update session expiration."""
@@ -183,6 +194,7 @@ def register_client():
             "admin/register-client.html",
             scope=current_app.config["OAUTH2_SCOPE"],
             users=with_db_connection(__list_users__),
+            granttypes=_FORM_GRANT_TYPES_,
             current_user=session.session_user())
 
     form = request.form

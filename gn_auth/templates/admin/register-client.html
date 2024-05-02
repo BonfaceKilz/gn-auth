@@ -43,19 +43,17 @@
     <br /><br />
     <fieldset>
       <legend>Supported grant types</legend>
+      {%for granttype in granttypes%}
       <input name="grants[]"
 	     type="checkbox"
-	     value="authorization_code"
-	     id="chk-authorization-code"
+	     value="{{granttype.value}}"
+	     id="chk-{{granttype.name.lower().replace(' ', '-')}}"
 	     checked="checked" />
-      <label for="chk-authorization-code">Authorization Code</label>
+      <label for="chk-{{granttype.name.lower().replace(' ', '-')}}">
+        {{granttype.name}}
+      </label>
       <br /><br />
-
-      <input name="grants[]"
-	     type="checkbox"
-	     value="refresh_token"
-	     id="chk-refresh-token" />
-      <label for="chk-refresh-token">Refresh Token</label>
+      {%endfor%}
     </fieldset>
   </fieldset>
 

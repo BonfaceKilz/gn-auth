@@ -85,7 +85,8 @@
     <tr>
       <td>{{sslkey.thumbprint()}}</td>
       <td>
-        <form>
+        <form method="POST"
+              action="{{url_for('oauth2.admin.delete_client_public_key')}}">
           <input type="hidden"
                  name="client_id"
                  value="{{client.client_id}}" />

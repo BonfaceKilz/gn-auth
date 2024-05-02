@@ -1,12 +1,14 @@
 """OAuth2 Client model."""
 import json
 import datetime
+from pathlib import Path
 
 from uuid import UUID
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Sequence, Optional
 
+from authlib.jose import KeySet, JsonWebKey
 from authlib.oauth2.rfc6749 import ClientMixin
 from pymonad.maybe import Just, Maybe, Nothing
 
@@ -54,6 +56,17 @@ class OAuth2Client(ClientMixin):
           e.g. being able to keep their registered client secret safe.
         """
         return self.client_metadata.get("client_type", "public")
+
+    @cached_property
+    def jwks(self) -> KeySet:
+        """Return this client's KeySet."""
+        def __parse_key__(keypath: Path) -> JsonWebKey:# pylint: disable=[unspecified-encoding]
+            with open(keypath) as _key:
+                return JsonWebKey.import_key(_key.read())
+
+        return KeySet([
+            __parse_key__(Path(pth))
+            for pth in self.client_metadata.get("public_keys", [])])
 
     def check_endpoint_auth_method(self, method: str, endpoint: str) -> bool:
         """

@@ -256,7 +256,8 @@ def view_client(client_id: uuid.UUID):
     return render_template(
         "admin/view-oauth2-client.html",
         client=with_db_connection(partial(oauth2_client, client_id=client_id)),
-        scope=current_app.config["OAUTH2_SCOPE"])
+        scope=current_app.config["OAUTH2_SCOPE"],
+        granttypes=_FORM_GRANT_TYPES_)
 
 @admin.route("/edit-client", methods=["POST"])
 @is_admin
@@ -283,7 +284,7 @@ def edit_client():
         "redirect_uris": list(set(
             [form["redirect_uri"]] +
             form["other_redirect_uris"].split("\r\n"))),
-        "grants": form.getlist("grants[]"),
+        "grant_types": form.getlist("grants[]"),
         "scope": form.getlist("scope[]")
     }
     with_db_connection(partial(save_client, the_client=OAuth2Client(

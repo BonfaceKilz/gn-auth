@@ -49,24 +49,19 @@
 
   <fieldset>
     <legend>Grants</legend>
-    <input name="grants[]"
-	   type="checkbox"
-	   value="authorization_code"
-	   id="chk:authorization-code"
-	   {%if "authorization_code" in client.client_metadata.grant_types%}
-	   checked="checked"
-	   {%endif%} />
-      <label for="chk:authorization-code">Authorization Code</label>
-      <br /><br />
-
+      {%for granttype in granttypes%}
       <input name="grants[]"
 	     type="checkbox"
-	     value="refresh_token"
-	     id="chk:refresh-token"
-	     {%if "refresh_token" in client.client_metadata.grant_types%}
+	     value="{{granttype.value}}"
+	     id="chk-{{granttype.name.lower().replace(' ', '-')}}"
+             {%if granttype.value in client.client_metadata.grant_types%}
 	     checked="checked"
-	     {%endif%} />
-      <label for="chk:refresh-token">Refresh Token</label>
+             {%endif%} />
+      <label for="chk-{{granttype.name.lower().replace(' ', '-')}}">
+        {{granttype.name}}
+      </label>
+      <br /><br />
+      {%endfor%}
   </fieldset>
 
   <input type="submit" value="update client" />

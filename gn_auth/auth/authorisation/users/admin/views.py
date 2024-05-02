@@ -3,12 +3,14 @@ import uuid
 import json
 import random
 import string
+from pathlib import Path
 from typing import Optional
 from functools import partial
 from dataclasses import asdict
 from urllib.parse import urlparse
 from datetime import datetime, timezone, timedelta
 
+from authlib.jose import JsonWebKey
 from email_validator import validate_email, EmailNotValidError
 from flask import (
     flash,
@@ -17,7 +19,8 @@ from flask import (
     redirect,
     Blueprint,
     current_app,
-    render_template)
+    render_template,
+    current_app as app)
 
 
 from gn_auth import session
@@ -258,6 +261,58 @@ def view_client(client_id: uuid.UUID):
         client=with_db_connection(partial(oauth2_client, client_id=client_id)),
         scope=current_app.config["OAUTH2_SCOPE"],
         granttypes=_FORM_GRANT_TYPES_)
+
+@admin.route("/register-client-public-key", methods=["POST"])
+@is_admin
+def register_client_public_key():
+    """Register a client's SSL key"""
+    form = request.form
+    admin_dashboard_uri = redirect(url_for("oauth2.admin.dashboard"))
+    view_client_uri = redirect(url_for("oauth2.admin.view_client",
+                                       client_id=form["client_id"]))
+    if not bool(form.get("client_id")):
+        flash("No client selected.", "alert-danger")
+        return admin_dashboard_uri
+
+    try:
+        _client = with_db_connection(partial(
+            oauth2_client, client_id=uuid.UUID(form["client_id"])))
+        if _client.is_nothing():
+            raise ValueError("No such client.")
+        _client = _client.value
+    except ValueError:
+        flash("Invalid client ID provided.", "alert-danger")
+        return admin_dashboard_uri
+    try:
+        _key = JsonWebKey.import_key(form["client_ssl_key"].strip())
+    except ValueError:
+        flash("Invalid key provided!", "alert-danger")
+        return view_client_uri
+
+    keypath = Path(app.config["CLIENTS_SSL_PUBLIC_KEYS_DIR"]).joinpath(
+        f"{_key.thumbprint()}.pem")
+    if not keypath.exists():
+        with open(keypath, mode="w", encoding="utf8") as _kpth:
+            _kpth.write(form["client_ssl_key"])
+
+        from gn_auth.debug import __pk__
+        with_db_connection(partial(save_client, the_client=OAuth2Client(
+            client_id=_client.client_id,
+            client_secret=_client.client_secret,
+            client_id_issued_at=_client.client_id_issued_at,
+            client_secret_expires_at=_client.client_secret_expires_at,
+            client_metadata={
+                **_client.client_metadata,
+                "public_keys": list(set(
+                    _client.client_metadata.get("public_keys", []) +
+                    [str(keypath)]))},
+            user=_client.user)))
+        flash("Client key successfully registered.", "alert-success")
+        return view_client_uri
+
+    flash("Client key already exists.", "alert-warning")
+    return view_client_uri
+
 
 @admin.route("/edit-client", methods=["POST"])
 @is_admin

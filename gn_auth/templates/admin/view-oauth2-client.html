@@ -67,5 +67,63 @@
 
   <input type="submit" value="update client" />
 </form>
+
+<hr />
+<h2>Signing/Verification SSL Keys</h2>
+<table>
+  <caption>Registered Public Keys</caption>
+  <thead>
+    <tr>
+      <th>JWK Thumbprint</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {%for sslkey in client.jwks.keys:%}
+    <tr>
+      <td>{{sslkey.thumbprint()}}</td>
+      <td>
+        <form>
+          <input type="hidden"
+                 name="client_id"
+                 value="{{client.client_id}}" />
+          <input type="hidden"
+                 name="ssl_key"
+                 value="{{sslkey.thumbprint()}}" />
+          <input type="submit"
+                 class="btn btn-danger"
+                 value="delete key" />
+        </form>
+      </td>
+    </tr>
+    {%else%}
+    <tr>
+      <td class="alert-warning"
+          colspan="2">
+        There are no registered SSL keys for this client.
+      </td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+<form id="frm-client-add-ssl-key"
+      method="POST"
+      action="{{url_for('oauth2.admin.register_client_public_key')}}">
+  <legend>Register new SSL key</legend>
+  <input type="hidden" name="client_id" value="{{client.client_id}}" />
+  <fieldset>
+    <label for="txt-area-client-ssl-key">Client's Public Key</label>
+    <textarea id="txt-area-client-ssl-key"
+              name="client_ssl_key"
+              required="required"
+              class="form-control"
+              rows="10"></textarea>
+  </fieldset>
+
+  <br />
+  <input type="submit" class="btn btn-primary" value="register key" />
+</form>
+
 {%endif%}
 {%endblock%}

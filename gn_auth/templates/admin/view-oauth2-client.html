@@ -14,6 +14,7 @@
 <form method="POST" action="{{url_for('oauth2.admin.edit_client')}}">
   <legend>View/Edit Oauth2 Client</legend>
   <input type="hidden" name="client_id" value="{{client.client_id}}" />
+  <input type="hidden" name="client_name" value="{{client.client_metadata.client_name}}" />
   <div>
     <p><strong>Client ID: <strong> {{client.client_id}}</p>
     <p><strong>Client Name: <strong> {{client.client_metadata.client_name}}</p>

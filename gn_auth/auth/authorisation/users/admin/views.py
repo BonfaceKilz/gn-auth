@@ -201,11 +201,11 @@ def register_client():
         client_id_issued_at = datetime.now(tz=timezone.utc),
         client_secret_expires_at = datetime.fromtimestamp(0),
         client_metadata = {
-            "client_name": "GN2 Dev Server",
+            "client_name": form["client_name"],
             "token_endpoint_auth_method": [
                 "client_secret_post", "client_secret_basic"],
             "client_type": "confidential",
-            "grant_types": ["password", "authorization_code", "refresh_token"],
+            "grant_types": grant_types,
             "default_redirect_uri": default_redirect_uri,
             "redirect_uris": [default_redirect_uri] + form.get("other_redirect_uri", "").split(),
             "response_type": __response_types__(tuple(grant_types)),
@@ -219,6 +219,7 @@ def register_client():
         "admin/registered-client.html",
         client=client,
         client_secret = raw_client_secret)
+
 
 def __parse_client__(sqlite3_row) -> dict:
     """Parse the client details into python datatypes."""

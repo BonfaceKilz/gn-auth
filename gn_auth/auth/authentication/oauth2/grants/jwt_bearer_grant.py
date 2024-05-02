@@ -1,6 +1,7 @@
 """JWT as Authorisation Grant"""
 from flask import current_app as app
 
+from authlib.common.security import generate_token
 from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant
 from authlib.oauth2.rfc7523.token import (
     JWTBearerTokenGenerator as _JWTBearerTokenGenerator)
@@ -30,6 +31,25 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
             "sub": str(tokendata["sub"])}
 
 
+    def __call__(self, grant_type, client, user=None, scope=None,
+                 expires_in=None, include_refresh_token=True):
+        # there is absolutely no refresh token in JWT format
+        """
+        The default generator does not provide refresh tokens with JWT. It goes
+        so far as to state "there is absolutely no refresh token in JWT format".
+
+        This shim allows us to have a refresh token. We should probably look for
+        a supported way of using JWTs with refresh capability.
+        """
+        token = self.generate(grant_type, client, user, scope, expires_in)
+        if include_refresh_token:
+            return {
+                **token,
+                "refresh_token": generate_token(length=42)
+            }
+        return token
+
+
 class JWTBearerGrant(_JWTBearerGrant):
     """Implement JWT as Authorisation Grant."""
 
@@ -57,3 +77,17 @@ class JWTBearerGrant(_JWTBearerGrant):
         Check if the client has permission to access the given user's resource.
         """
         return True # TODO: Check this!!!
+
+    def create_token_response(self):
+        """If valid and authorized, the authorization server issues an access
+        token.
+        """
+        token = self.generate_token(
+            scope=self.request.scope,
+            user=self.request.user,
+            include_refresh_token=self.request.client.check_grant_type(
+                "refresh_token")
+        )
+        app.logger.debug('Issue token %r to %r', token, self.request.client)
+        self.save_token(token)
+        return 200, token, self.TOKEN_RESPONSE_HEADER

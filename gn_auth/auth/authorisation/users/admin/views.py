@@ -279,9 +279,9 @@ def edit_client():
     the_client = the_client.value
     client_metadata = {
         **the_client.client_metadata,
-        "default_redirect_uri": form["default_redirect_uri"],
+        "default_redirect_uri": form["redirect_uri"],
         "redirect_uris": list(set(
-            [form["default_redirect_uri"]] +
+            [form["redirect_uri"]] +
             form["other_redirect_uris"].split("\r\n"))),
         "grants": form.getlist("grants[]"),
         "scope": form.getlist("scope[]")

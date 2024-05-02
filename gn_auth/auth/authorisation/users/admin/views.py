@@ -5,6 +5,7 @@ import random
 import string
 from typing import Optional
 from functools import partial
+from dataclasses import asdict
 from urllib.parse import urlparse
 from datetime import datetime, timezone, timedelta
 
@@ -80,7 +81,7 @@ def login():
             user = user_by_email(conn, email["email"])
             if valid_login(conn, user, password):
                 session.update_session_info(
-                    user=user._asdict(),
+                    user=asdict(user),
                     expires=(
                         datetime.now(tz=timezone.utc) + timedelta(minutes=10)))
                 return redirect(url_for(next_uri))

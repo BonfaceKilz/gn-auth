@@ -1,4 +1,6 @@
 """JWT as Authorisation Grant"""
+import uuid
+
 from flask import current_app as app
 
 from authlib.common.security import generate_token
@@ -28,7 +30,9 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
                 key: str(value) if key.endswith("_id") else value
                 for key, value in tokendata.items()
             },
-            "sub": str(tokendata["sub"])}
+            "sub": str(tokendata["sub"]),
+            "jti": str(uuid.uuid4())
+        }
 
 
     def __call__(self, grant_type, client, user=None, scope=None,
@@ -54,6 +58,10 @@ class JWTBearerGrant(_JWTBearerGrant):
     """Implement JWT as Authorisation Grant."""
 
     TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_post", "client_secret_jwt"]
+    CLAIMS_OPTIONS = {
+        **_JWTBearerGrant.CLAIMS_OPTIONS,
+        "jti": {"essential": True}
+    }
 
 
     def resolve_issuer_client(self, issuer):

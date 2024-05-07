@@ -13,6 +13,7 @@ from gn_auth.auth.db import sqlite3 as db
 
 from .models.oauth2client import client
 from .models.oauth2token import OAuth2Token, save_token
+from .models.jwtrefreshtoken import JWTRefreshToken, save_refresh_token
 
 from .grants.password_grant import PasswordGrant
 from .grants.authorisation_code_grant import AuthorisationCodeGrant
@@ -54,12 +55,17 @@ def create_save_token_func(token_model: type, jwtkey: jwk) -> Callable:
             })
         with db.connection(current_app.config["AUTH_DB"]) as conn:
             save_token(conn, _token)
+            save_refresh_token(
+                conn,
+                JWTRefreshToken(
+                    token=_token.refresh_token,
+                    client=request.client,
                     user=request.user,
-                    **{
-                        "refresh_token": None, "revoked": False,
-                        "issued_at": datetime.datetime.now(),
-                        **token
-                    }))
+                    issued_with=uuid.UUID(_jwt["jti"]),
+                    issued_at=datetime.datetime.fromtimestamp(_jwt["iat"]),
+                    expires=datetime.datetime.fromtimestamp(_jwt["iat"]),
+                    revoked=False,
+                    parent_of=None))
 
     return __save_token__
 

@@ -20,7 +20,7 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
     DEFAULT_EXPIRES_IN = 300
 
     def get_token_data(#pylint: disable=[too-many-arguments]
-            self, grant_type, client, expires_in=300, user=None, scope=None
+            self, grant_type, client, expires_in=None, user=None, scope=None
     ):
         """Post process data to prevent JSON serialization problems."""
         tokendata = super().get_token_data(

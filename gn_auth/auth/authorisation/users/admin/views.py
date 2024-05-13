@@ -18,7 +18,6 @@ from flask import (
     url_for,
     redirect,
     Blueprint,
-    current_app,
     render_template,
     current_app as app)
 
@@ -91,7 +90,7 @@ def login():
         email = validate_email(form.get("email", "").strip(),
                                check_deliverability=False)
         password = form.get("password")
-        with db.connection(current_app.config["AUTH_DB"]) as conn:
+        with db.connection(app.config["AUTH_DB"]) as conn:
             user = user_by_email(conn, email["email"])
             if valid_login(conn, user, password):
                 session.update_session_info(
@@ -195,7 +194,7 @@ def register_client():
     if request.method == "GET":
         return render_template(
             "admin/register-client.html",
-            scope=current_app.config["OAUTH2_SCOPE"],
+            scope=app.config["OAUTH2_SCOPE"],
             users=with_db_connection(__list_users__),
             granttypes=_FORM_GRANT_TYPES_,
             current_user=session.session_user())
@@ -259,7 +258,7 @@ def view_client(client_id: uuid.UUID):
     return render_template(
         "admin/view-oauth2-client.html",
         client=with_db_connection(partial(oauth2_client, client_id=client_id)),
-        scope=current_app.config["OAUTH2_SCOPE"],
+        scope=app.config["OAUTH2_SCOPE"],
         granttypes=_FORM_GRANT_TYPES_)
 
 @admin.route("/register-client-public-key", methods=["POST"])
@@ -358,7 +357,7 @@ def delete_client_public_key():
             client_metadata={
                 **_client.client_metadata,
                 "public_keys": list(set(
-                    keysdir.joinpath(f"{_key.thumbprint()}.pem")
+                    _keysdir.joinpath(f"{_key.thumbprint()}.pem")
                     for _key in _keys))},
             user=_client.user)))
     flash("Key deleted.", "alert-success")

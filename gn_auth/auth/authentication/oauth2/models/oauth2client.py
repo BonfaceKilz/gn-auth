@@ -60,8 +60,8 @@ class OAuth2Client(ClientMixin):
     @cached_property
     def jwks(self) -> KeySet:
         """Return this client's KeySet."""
-        def __parse_key__(keypath: Path) -> JsonWebKey:# pylint: disable=[unspecified-encoding]
-            with open(keypath) as _key:
+        def __parse_key__(keypath: Path) -> JsonWebKey:
+            with open(keypath) as _key:# pylint: disable=[unspecified-encoding]
                 return JsonWebKey.import_key(_key.read())
 
         return KeySet([

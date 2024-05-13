@@ -11,7 +11,7 @@ from authlib.integrations.flask_oauth2 import AuthorizationServer
 
 from gn_auth.auth.db import sqlite3 as db
 
-from .models.oauth2client import client
+from .models.oauth2client import client as fetch_client
 from .models.oauth2token import OAuth2Token, save_token
 from .models.jwtrefreshtoken import (
     JWTRefreshToken,
@@ -36,7 +36,7 @@ def create_query_client_func() -> Callable:
         # use current_app rather than passing the db_uri to avoid issues
         # when config changes, e.g. while testing.
         with db.connection(current_app.config["AUTH_DB"]) as conn:
-            _client = client(conn, client_id).maybe(
+            _client = fetch_client(conn, client_id).maybe(
                 None, lambda clt: clt) # type: ignore[misc]
             if bool(_client):
                 return _client

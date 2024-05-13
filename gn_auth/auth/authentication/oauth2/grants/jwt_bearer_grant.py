@@ -35,8 +35,10 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
         }
 
 
-    def __call__(self, grant_type, client, user=None, scope=None,
-                 expires_in=None, include_refresh_token=True):
+    def __call__(# pylint: disable=[too-many-arguments]
+            self, grant_type, client, user=None, scope=None, expires_in=None,
+            include_refresh_token=True
+    ):
         # there is absolutely no refresh token in JWT format
         """
         The default generator does not provide refresh tokens with JWT. It goes

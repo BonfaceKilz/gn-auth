@@ -12,6 +12,8 @@ from gn_auth import create_app
 def fxtr_app():
     """Fixture: setup the test app"""
     # Do some setup
+    testsroot = os.path.dirname(__file__)
+
     with TemporaryDirectory() as testdir:
         testdb = Path(testdir).joinpath(
             f'testdb_{datetime.now().strftime("%Y%m%dT%H%M%S")}')
@@ -23,7 +25,8 @@ def fxtr_app():
             "OAUTH2_ACCESS_TOKEN_GENERATOR": "tests.unit.auth.test_token.gen_token",
             "SECRET_KEY": "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk",
             "UPLOADS_DIR": testuploadsdir,
-            "SSL_PRIVATE_KEY": f"{os.path.dirname(__file__)}/test-ssl-private-key.pem"
+            "SSL_PRIVATE_KEY": f"{testsroot}/test-ssl-private-key.pem",
+            "CLIENTS_SSL_PUBLIC_KEYS_DIR": f"{testsroot}/test-public-keys-dir"
         })
         app.testing = True
         yield app

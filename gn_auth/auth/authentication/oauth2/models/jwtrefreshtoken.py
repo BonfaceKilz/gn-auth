@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from authlib.oauth2.rfc6749 import TokenMixin, InvalidGrantError
 
+from pymonad.either import Left, Right
 from pymonad.maybe import Just, Maybe, Nothing
 from pymonad.tools import monad_from_none_or_value
 
@@ -117,15 +118,19 @@ def load_refresh_token(conn: db.DbConnection, token: str) -> Maybe:
 
 def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
     """Link child token."""
-    _parent = load_refresh_token(conn, parenttoken).maybe(
-        None, lambda _tok: _tok)
-    if _parent is None:
-        raise InvalidGrantError("Token not found.")
+    def __link_to_child__(parent):
+        with db.cursor(conn) as cursor:
+            cursor.execute(
+                ("UPDATE jwt_refresh_tokens SET parent_of=:childtoken "
+                 "WHERE token=:parenttoken"),
+                {"parenttoken": parent.token, "childtoken": childtoken})
 
-    with db.cursor(conn) as cursor:
-        cursor.execute(("UPDATE jwt_refresh_tokens SET parent_of=:childtoken "
-                        "WHERE token=:parenttoken"),
-                       {"parenttoken": parenttoken, "childtoken": childtoken})
+    def __raise_error__(_error_msg_):
+        raise InvalidGrantError(_error_msg_)
+
+    load_refresh_token(conn, parenttoken).maybe(
+        Left("Token not found"), Right).either(
+            __raise_error__, __link_to_child__)
 
 
 def is_refresh_token_valid(token: JWTRefreshToken, client: OAuth2Client) -> bool:

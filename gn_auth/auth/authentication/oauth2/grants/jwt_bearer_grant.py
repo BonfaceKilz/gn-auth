@@ -1,9 +1,8 @@
 """JWT as Authorisation Grant"""
 import uuid
+from dataclasses import asdict
 
 from flask import current_app as app
-
-from dataclasses import asdict
 
 from authlib.common.security import generate_token
 from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant

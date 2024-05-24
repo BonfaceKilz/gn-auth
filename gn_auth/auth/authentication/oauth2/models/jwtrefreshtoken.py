@@ -125,12 +125,26 @@ def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
                  "WHERE token=:parenttoken"),
                 {"parenttoken": parent.token, "childtoken": childtoken})
 
-    def __raise_error__(_error_msg_):
+    def __check_child__(parent):
+        with db.cursor(conn) as cursor:
+            cursor.execute(
+                ("SELECT * FROM jwt_refresh_tokens WHERE token=:parenttoken"),
+                {"parenttoken": parent.token})
+            results = cursor.fetchone()
+            if results["parent_of"] is not None:
+                return Left(
+                    "Refresh token has been used before. Possibly nefarious "
+                    "activity detected.")
+            return Right(parent)
+
+    def __revoke_and_raise_error__(_error_msg_):
+        revoke_refresh_token(conn, parenttoken)
         raise InvalidGrantError(_error_msg_)
 
     load_refresh_token(conn, parenttoken).maybe(
-        Left("Token not found"), Right).either(
-            __raise_error__, __link_to_child__)
+        Left("Token not found"), Right).then(
+            __check_child__).either(__revoke_and_raise_error__,
+                                    __link_to_child__)
 
 
 def is_refresh_token_valid(token: JWTRefreshToken, client: OAuth2Client) -> bool:

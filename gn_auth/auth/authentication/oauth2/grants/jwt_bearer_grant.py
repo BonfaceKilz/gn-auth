@@ -11,22 +11,6 @@ from authlib.oauth2.rfc7523.token import (
 
 from gn_auth.auth.db.sqlite3 import with_db_connection
 from gn_auth.auth.authentication.users import user_by_id
-from gn_auth.auth.authorisation.roles.models import user_roles
-
-
-def convert_uuids_to_string(srcdict: dict) -> dict:
-    """
-    Convert *ALL* UUID objects in a dict to strings.
-
-    `json.dumps` does not encode UUID objects by default.
-    """
-    def uuid2str(key, value):
-        if isinstance(value, dict):
-            return (key, convert_uuids_to_string(value))
-        if isinstance(value, uuid.UUID):
-            return (key, str(value))
-        return (key, value)
-    return dict(tuple(uuid2str(_key, _val) for _key, _val in srcdict.items()))
 
 
 class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
@@ -48,13 +32,7 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
                 for key, value in tokendata.items()
             },
             "sub": str(tokendata["sub"]),
-            "jti": str(uuid.uuid4()),
-            "gn:auth:user:roles": tuple(convert_uuids_to_string({
-                **item,
-                "roles": tuple(convert_uuids_to_string(asdict(role))
-                               for role in item["roles"])
-            }) for item in with_db_connection(
-                lambda conn: user_roles(conn, user)))
+            "jti": str(uuid.uuid4())
         }
 
 

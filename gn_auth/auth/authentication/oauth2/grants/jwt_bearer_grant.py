@@ -1,6 +1,5 @@
 """JWT as Authorisation Grant"""
 import uuid
-from dataclasses import asdict
 
 from flask import current_app as app
 

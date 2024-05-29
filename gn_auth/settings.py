@@ -32,3 +32,10 @@ CORS_HEADERS = [
 # OpenSSL keys
 CLIENTS_SSL_PUBLIC_KEYS_DIR = "" # clients' public keys' directory
 SSL_PRIVATE_KEY = "" # authorisation server primary key
+
+## Email
+SMTP_HOST = "smtp.genenetwork.org" # does not actually exist right now
+SMTP_PORT = 587
+SMTP_TIMEOUT = 200 # seconds
+SMTP_USER = "no-reply@genenetwork.org"
+SMTP_PASSWORD = "asecrettoken"

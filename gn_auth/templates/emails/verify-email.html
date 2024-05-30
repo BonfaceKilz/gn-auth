@@ -2,25 +2,6 @@
   <head>
     <meta charset="UTF-8" />
     <title>{{subject}}</title>
-    <style type="text/css">
-      .btn {
-          display: inline-block;
-          text-align: center;
-          vertical-align: center;
-          cursor: pointer;
-          border-radius: 4px;
-          background-color: #336699;
-          border-color: #357ebd;
-      }
-      .verification-code{
-          color: #3A3AFF;
-          font-weight: bolder;
-      }
-      .note {
-          font-weight: bold;
-          color: #ee55ee;
-      }
-    </style>
   </head>
   <body>
     <p>Thank you for registering an account with GeneNetwork.</p>
@@ -28,8 +9,8 @@
     <p>
       To avoid bots, we need to verify that you are an actual human. To do so,
       please
-      <a href="{{verification_uri}}/{{verification_code}}"
-         class="btn">
+      <a href="{{verification_uri}}?verificationcode={{verification_code}}"
+         style="display: inline-block;text-align: center;vertical-align: center;cursor: pointer;border-radius: 4px;background-color: #336699;border-color: #357ebd;">
         Click here
       </a>.
     </p>
@@ -38,10 +19,10 @@
       If that does not work, please log in to GeneNetwork and copy the
       verification code below when requested:<br /><br />
 
-      <span class="verification-code">{{verification_code}}</span>
+      <span style="color: #3A3AFF;font-weight: bolder;">{{verification_code}}</span>
     </p>
 
-    <p class="note">
+    <p style="font-weight: bold;color: #ee55ee;">
       Please note that the verification code will expire in
       <strong>{{expiration_minutes}}</strong> minutes after it was generated.
     </p>

@@ -3,7 +3,7 @@
 
 Thank you for registering an account with GeneNetwork.
 
-To avoid bots, we need to verify that you are an actual human. To do so, please go to "{{verification_uri}}/{{verification_code}}".
+To avoid bots, we need to verify that you are an actual human. To do so, please go to "{{verification_uri}}?verificationcode={{verification_code}}".
 
 If that does not work, please log in to GeneNetwork and copy the verification code below when requested:
 

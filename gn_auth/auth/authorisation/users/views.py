@@ -25,10 +25,15 @@ from gn_auth.auth.authorisation.resources.models import (
     user_resources as _user_resources)
 from gn_auth.auth.authorisation.roles.models import (
     assign_default_roles, user_roles as _user_roles)
-from gn_auth.auth.errors import (
-    NotFoundError, UsernameError, PasswordError, UserRegistrationError)
 from gn_auth.auth.authorisation.resources.groups.models import (
     user_group as _user_group)
+
+from gn_auth.auth.errors import (
+    NotFoundError,
+    UsernameError,
+    PasswordError,
+    UserVerificationError,
+    UserRegistrationError)
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, save_user, set_user_password
@@ -168,6 +173,51 @@ def register_user() -> Response:
 
     raise Exception(
         "unknown_error", "The system experienced an unexpected error.")
+
+def delete_verification_code(cursor, code: str):
+    """Delete verification code from db."""
+    cursor.execute("DELETE FROM user_verification_codes "
+                   "WHERE code=:code",
+                   {"code": code})
+
+@users.route("/verify", methods=["GET", "POST"])
+def verify_user():
+    """Verify users are not bots."""
+    code = request.args.get("verificationcode",
+                            request.form.get("verificationcode",
+                                             "nosuchcode"))
+    with (db.connection(current_app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        cursor.execute("SELECT * FROM user_verification_codes "
+                       "WHERE code=:code",
+                       {"code": code})
+        results = tuple(dict(row) for row in cursor.fetchall())
+
+        if not bool(results):
+            raise UserVerificationError(
+                "Invalid verification code: code not found.")
+
+        if len(results) > 1:
+            delete_verification_code(cursor, code)
+            raise UserVerificationError(
+                "Invalid verification code: code is duplicated.")
+
+        results = results[0]
+        if (datetime.datetime.fromtimestamp(
+                int(results["expires"])) < datetime.datetime.now()):
+            delete_verification_code(cursor, code)
+            raise UserVerificationError(
+                "Invalid verification code: code has expired.")
+
+        # Code is good!
+        delete_verification_code(cursor, code)
+        cursor.execute("UPDATE users SET verified=1 WHERE user_id=:user_id",
+                       {"user_id": results["user_id"]})
+        return jsonify({
+            "status": "success",
+            "message": "User verification successful!"
+        })
+
 
 @users.route("/group", methods=["GET"])
 @require_oauth("profile group")

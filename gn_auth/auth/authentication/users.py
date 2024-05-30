@@ -70,7 +70,13 @@ def valid_login(conn: db.DbConnection, user: User, password: str) -> bool:
 
     return same_password(password, row["password"])
 
-def save_user(cursor: db.DbCursor, email: str, name: str) -> User:
+def save_user(
+        cursor: db.DbCursor,
+        email: str,
+        name: str,
+        created: datetime.datetime = datetime.datetime.now(),
+        verified: bool = False
+) -> User:
     """
     Create and persist a user.
 
@@ -80,9 +86,16 @@ def save_user(cursor: db.DbCursor, email: str, name: str) -> User:
     The newly created and persisted user is then returned.
     """
     user_id = uuid4()
-    cursor.execute("INSERT INTO users VALUES (?, ?, ?)",
-                   (str(user_id), email, name))
-    return User(user_id, email, name)
+    cursor.execute(
+        ("INSERT INTO users(user_id, email, name, created, verified) "
+         "VALUES (?, ?, ?, ?, ?)"),
+        (
+            str(user_id),
+            email,
+            name,
+            int(created.timestamp()),
+            (1 if verified else 0)))
+    return User(user_id, email, name, created, verified)
 
 def hasher():
     """Retrieve PasswordHasher object"""

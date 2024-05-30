@@ -223,7 +223,7 @@ You can run the application on production with GUnicorn with something like:
 
 ```sh
 gunicorn --bind 0.0.0.0:8081 --workers 6 --keep-alive 6000 --max-requests 10 \
-	--max-requests-jitter 5 --timeout 1200 wsgi:app
+	--max-requests-jitter 5 --timeout 1200 gn_auth.wsgi:app
 ```
 
 ## Checks

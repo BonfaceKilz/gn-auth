@@ -1,11 +1,22 @@
 """User authorisation endpoints."""
+import sqlite3
+import secrets
+import datetime
 import traceback
 from typing import Any
 from functools import partial
 from dataclasses import asdict
-import sqlite3
+from email.headerregistry import Address
 from email_validator import validate_email, EmailNotValidError
-from flask import request, jsonify, Response, Blueprint, current_app
+from flask import (
+    request,
+    jsonify,
+    Response,
+    Blueprint,
+    current_app,
+    render_template)
+
+from gn_auth.smtp import send_message, build_email_message
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
@@ -86,6 +97,46 @@ def __assert_not_logged_in__(conn: db.DbConnection):
             raise UserRegistrationError(
                 "Cannot register user while authenticated")
 
+def user_address(user: User) -> Address:
+    """Compute the `email.headerregistry.Address` from a `User`"""
+    return Address(display_name=user.name, addr_spec=user.email)
+
+def send_verification_email(conn, user: User) -> None:
+    """Send an email verification message."""
+    subject="GeneNetwork: Please Verify Your Email"
+    verification_code = secrets.token_urlsafe(64)
+    generated = datetime.datetime.now()
+    expiration_minutes = 15
+    def __render__(template):
+        return render_template(template,
+                               subject=subject,
+                               verification_code=verification_code,
+                               verification_uri="https://please/change/this/",
+                               expiration_minutes=expiration_minutes)
+    with db.cursor(conn) as cursor:
+        cursor.execute(
+            ("INSERT INTO "
+             "user_verification_codes(user_id, code, generated, expires) "
+             "VALUES (:user_id, :code, :generated, :expires)"),
+            {
+                "user_id": str(user.user_id),
+                "code": verification_code,
+                "generated": int(generated.timestamp()),
+                "expires": int(
+                    (generated +
+                     datetime.timedelta(
+                         minutes=expiration_minutes)).timestamp())
+            })
+        send_message(smtp_user=current_app.config["SMTP_USER"],
+                     smtp_passwd=current_app.config["SMTP_PASSWORD"],
+                     message=build_email_message(
+                         to_addresses=(user_address(user),),
+                         subject=subject,
+                         txtmessage=__render__("emails/verify-email.txt"),
+                         htmlmessage=__render__("emails/verify-email.html")),
+                     host=current_app.config["SMTP_HOST"],
+                     port=current_app.config["SMTP_PORT"])
+
 @users.route("/register", methods=["POST"])
 def register_user() -> Response:
     """Register a user."""
@@ -105,6 +156,7 @@ def register_user() -> Response:
                     cursor, save_user(
                         cursor, email["email"], user_name), password)
                 assign_default_roles(cursor, user)
+                send_verification_email(conn, user)
                 return jsonify(asdict(user))
         except sqlite3.IntegrityError as sq3ie:
             current_app.logger.debug(traceback.format_exc())

@@ -17,9 +17,7 @@ def list_users(conn: db.DbConnection) -> tuple[User, ...]:
     """List out all users."""
     with db.cursor(conn) as cursor:
         cursor.execute("SELECT * FROM users")
-        return tuple(
-            User(uuid.UUID(row["user_id"]), row["email"], row["name"])
-            for row in cursor.fetchall())
+        return tuple(User.from_sqlite3_row(row) for row in cursor.fetchall())
 
 def __build_resource_roles__(rows):
     def __build_roles__(roles, row):

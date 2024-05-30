@@ -276,8 +276,7 @@ def group_users(conn: db.DbConnection, group_id: UUID) -> Iterable[User]:
             {"group_id": str(group_id)})
         results = cursor.fetchall()
 
-    return (User(UUID(row["user_id"]), row["email"], row["name"])
-            for row in results)
+    return (User.from_sqlite3_row(row) for row in results)
 
 
 @authorised_p(

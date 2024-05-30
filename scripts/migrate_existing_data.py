@@ -35,8 +35,7 @@ def sys_admins(conn: authdb.DbConnection) -> tuple[User, ...]:
             "INNER JOIN user_roles AS ur ON u.user_id=ur.user_id "
             "INNER JOIN roles AS r ON ur.role_id=r.role_id "
             "WHERE r.role_name='system-administrator'")
-        return tuple(User(UUID(row["user_id"]), row["email"], row["name"])
-                     for row in cursor.fetchall())
+        return tuple(User.from_sqlite3_row(row) for row in cursor.fetchall())
     return tuple()
 
 def choose_admin(enum_admins: dict[int, User]) -> int:

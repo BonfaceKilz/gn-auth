@@ -81,8 +81,7 @@ class AuthorisationCodeGrant(grants.AuthorizationCodeGrant):
                 cursor.execute(query, (str(authorization_code.code),))
                 res = cursor.fetchone()
                 if res:
-                    return User(
-                        uuid.UUID(res["user_id"]), res["email"], res["name"])
+                    return User.from_sqlite3_row(res)
 
         return None
 

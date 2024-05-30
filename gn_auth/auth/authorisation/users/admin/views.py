@@ -189,8 +189,7 @@ def register_client():
         with db.cursor(conn) as cursor:
             cursor.execute("SELECT * FROM users")
             return tuple(
-                User(uuid.UUID(row["user_id"]), row["email"], row["name"])
-                for row in cursor.fetchall())
+                User.from_sqlite3_row(row) for row in cursor.fetchall())
     if request.method == "GET":
         return render_template(
             "admin/register-client.html",

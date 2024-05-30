@@ -172,7 +172,7 @@ def resource_users(resource_id: uuid.UUID):
                     def __organise_users_n_roles__(users_n_roles, row):
                         user_id = uuid.UUID(row["user_id"])
                         user = users_n_roles.get(user_id, {}).get(
-                            "user", User(user_id, row["email"], row["name"]))
+                            "user", User.from_sqlite3_row(row))
                         role = Role(
                             uuid.UUID(row["role_id"]), row["role_name"],
                             bool(int(row["user_editable"])), tuple())

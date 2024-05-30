@@ -1,8 +1,10 @@
 """User-specific code and data structures."""
-from uuid import UUID, uuid4
+import datetime
 from typing import Tuple
+from uuid import UUID, uuid4
 from dataclasses import dataclass
 
+import sqlite3
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
@@ -16,10 +18,21 @@ class User:
     user_id: UUID
     email: str
     name: str
+    created: datetime.datetime = datetime.datetime.now()
+    verified: bool = False
 
     def get_user_id(self):
         """Get the user's ID."""
         return self.user_id
+
+    @staticmethod
+    def from_sqlite3_row(row: sqlite3.Row):
+        """Generate a user from a row in an SQLite3 resultset"""
+        return User(user_id=UUID(row["user_id"]),
+                    email=row["email"],
+                    name=row["name"],
+                    created=datetime.datetime.fromtimestamp(row["created"]),
+                    verified=bool(int(row["verified"])))
 
 
 DUMMY_USER = User(user_id=UUID("a391cf60-e8b7-4294-bd22-ddbbda4b3530"),
@@ -33,7 +46,7 @@ def user_by_email(conn: db.DbConnection, email: str) -> User:
         row = cursor.fetchone()
 
     if row:
-        return User(UUID(row["user_id"]), row["email"], row["name"])
+        return User.from_sqlite3_row(row)
 
     raise NotFoundError(f"Could not find user with email {email}")
 
@@ -44,7 +57,7 @@ def user_by_id(conn: db.DbConnection, user_id: UUID) -> User:
         row = cursor.fetchone()
 
     if row:
-        return User(UUID(row["user_id"]), row["email"], row["name"])
+        return User.from_sqlite3_row(row)
 
     raise NotFoundError(f"Could not find user with ID {user_id}")
 
@@ -135,6 +148,5 @@ def fetch_users(conn: db.DbConnection,
             f" WHERE user_id IN ({params})"
             if len(ids) > 0 else "")
         cursor.execute(query, tuple(str(the_id) for the_id in ids))
-        return tuple(User(UUID(row["user_id"]), row["email"], row["name"])
-                     for row in cursor.fetchall())
+        return tuple(User.from_sqlite3_row(row) for row in cursor.fetchall())
     return tuple()

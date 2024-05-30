@@ -105,12 +105,7 @@ def register_user() -> Response:
                     cursor, save_user(
                         cursor, email["email"], user_name), password)
                 assign_default_roles(cursor, user)
-                return jsonify(
-                    {
-                        "user_id": user.user_id,
-                        "email": user.email,
-                        "name": user.name
-                    })
+                return jsonify(asdict(user))
         except sqlite3.IntegrityError as sq3ie:
             current_app.logger.debug(traceback.format_exc())
             raise UserRegistrationError(

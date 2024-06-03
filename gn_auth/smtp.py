@@ -1,4 +1,5 @@
 """Handle sending emails. Uses Python3's `smtplib`."""
+import logging
 import smtplib
 import mimetypes
 from typing import Optional
@@ -50,6 +51,7 @@ def send_message(# pylint: disable=[too-many-arguments]
         source_address: Optional[tuple[tuple[str, int], ...]] = None
 ):
     """Set up a connection to a SMTP server and send a message."""
+    logging.debug("Email to send:\n******\n%s\n******\n", message.as_string())
     with smtplib.SMTP(host, port, local_hostname, timeout, source_address) as conn:
         conn.starttls()
         conn.login(smtp_user, smtp_passwd)

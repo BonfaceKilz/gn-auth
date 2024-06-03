@@ -53,7 +53,7 @@ def authorise():
                 redirect_uri=request.args["redirect_uri"])
 
         form = request.form
-        def __authorise__(conn: db.DbConnection) -> Response:
+        def __authorise__(conn: db.DbConnection):
             email_passwd_msg = "Email or password is invalid!"
             redirect_response = redirect(url_for("oauth2.auth.authorise",
                                                  response_type=form["response_type"],
@@ -64,6 +64,9 @@ def authorise():
                     form.get("user:email"), check_deliverability=False)
                 user = user_by_email(conn, email["email"])
                 if valid_login(conn, user, form.get("user:password", "")):
+                    if not user.verified:
+                        return redirect(url_for(
+                            "oauth2.users.handle_unverified"), code=307)
                     return server.create_authorization_response(request=request, grant_user=user)
                 flash(email_passwd_msg, "alert-danger")
                 return redirect_response # type: ignore[return-value]

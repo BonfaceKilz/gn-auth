@@ -35,6 +35,7 @@ from gn_auth.auth.errors import (
     UserVerificationError,
     UserRegistrationError)
 
+from gn_auth.auth.authentication.users import valid_login, user_by_email
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, save_user, set_user_password
 from gn_auth.auth.authentication.oauth2.models.oauth2token import (
@@ -275,3 +276,36 @@ def list_all_users() -> Response:
     with require_oauth.acquire("profile group") as _the_token:
         return jsonify(tuple(
             asdict(user) for user in with_db_connection(list_users)))
+
+@users.route("/handle-unverified", methods=["POST"])
+def handle_unverified():
+    """Handle case where user tries to login but is unverified"""
+    form = request.form
+    # TODO: Maybe have a GN2_URI setting here?
+    #       or pass the client_id here?
+    return render_template(
+        "users/unverified-user.html", email=form.get("user:email"))
+
+@users.route("/send-verification", methods=["POST"])
+def send_verification_code():
+    """Send verification code email."""
+    form = request.form
+    with (db.connection(current_app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        user = user_by_email(conn, form["user_email"])
+        if valid_login(conn, user, form.get("user_password", "")):
+            cursor.execute(
+                "DELETE FROM user_verification_codes WHERE user_id=:user_id",
+                {"user_id": str(user.user_id)})
+            send_verification_email(conn, user)
+            return jsonify({
+                "status": "success",
+                "message": "Sent a verification code to your email."
+            })
+
+    resp = jsonify({
+        "error": "InvalidLogin",
+        "error-description": "Invalid email or password."
+    })
+    resp.code = 400
+    return resp

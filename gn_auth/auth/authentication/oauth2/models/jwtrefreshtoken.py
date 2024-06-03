@@ -16,6 +16,7 @@ from pymonad.maybe import Just, Maybe, Nothing
 from pymonad.tools import monad_from_none_or_value
 
 from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.errors import ForbiddenAccess
 from gn_auth.auth.authentication.users import User, user_by_id
 
 from gn_auth.auth.authentication.oauth2.models.oauth2client import (
@@ -166,10 +167,13 @@ def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
 
 def is_refresh_token_valid(token: JWTRefreshToken, client: OAuth2Client) -> bool:
     """Check whether a token is valid."""
-    return (
-        (token.client.client_id == client.client_id)
-        and
-        (not token.is_expired())
-        and
-        (not token.revoked)
-    )
+    if not token.client.client_id == client.client_id:
+        raise ForbiddenAccess("Token does not belong to client.")
+
+    if token.is_expired():
+        raise ForbiddenAccess("Token is expired.")
+
+    if token.revoked:
+        raise ForbiddenAccess("Token has previously been revoked.")
+
+    return True

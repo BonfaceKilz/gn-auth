@@ -16,22 +16,6 @@
   <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
   <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
   <input type="hidden" name="client_id" value="{{client.client_id}}" />
-  <p>
-    You are authorising "{{client.client_metadata.client_name}}" to access
-    Genenetwork 3 with the following scope:
-  </p>
-  <fieldset>
-    <legend>Scope</legend>
-    {%for scp in scope%}
-    <div class="checkbox disabled">
-      <label for="scope:{{scp}}">
-	<input id="scope:{{scp}}" type="checkbox" name="scope[]" value="{{scp}}"
-	       checked="checked" disabled="disabled" />
-	{{scp}}
-      </label>
-    </div>
-    {%endfor%}
-  </fieldset>
 
   <fieldset>
     <legend>User Credentials</legend>

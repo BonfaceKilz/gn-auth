@@ -6,11 +6,15 @@ import traceback
 from typing import Any
 from functools import partial
 from dataclasses import asdict
+from urllib.parse import urljoin
 from email.headerregistry import Address
 from email_validator import validate_email, EmailNotValidError
 from flask import (
+    flash,
     request,
     jsonify,
+    url_for,
+    redirect,
     Response,
     Blueprint,
     current_app,
@@ -32,8 +36,8 @@ from gn_auth.auth.errors import (
     NotFoundError,
     UsernameError,
     PasswordError,
-    UserVerificationError,
     UserRegistrationError)
+
 
 from gn_auth.auth.authentication.users import valid_login, user_by_email
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
@@ -107,7 +111,13 @@ def user_address(user: User) -> Address:
     """Compute the `email.headerregistry.Address` from a `User`"""
     return Address(display_name=user.name, addr_spec=user.email)
 
-def send_verification_email(conn, user: User) -> None:
+def send_verification_email(
+        conn,
+        user: User,
+        client_id: str,
+        response_type: str,
+        redirect_uri: str
+) -> None:
     """Send an email verification message."""
     subject="GeneNetwork: Please Verify Your Email"
     verification_code = secrets.token_urlsafe(64)
@@ -117,7 +127,13 @@ def send_verification_email(conn, user: User) -> None:
         return render_template(template,
                                subject=subject,
                                verification_code=verification_code,
-                               verification_uri="https://please/change/this/",
+                               verification_uri=urljoin(
+                                   request.url,
+                                   url_for("oauth2.users.verify_user",
+                                           response_type=response_type,
+                                           client_id=client_id,
+                                           redirect_uri=redirect_uri,
+                                           verificationcode=verification_code)),
                                expiration_minutes=expiration_minutes)
     with db.cursor(conn) as cursor:
         cursor.execute(
@@ -162,7 +178,11 @@ def register_user() -> Response:
                     cursor, save_user(
                         cursor, email["email"], user_name), password)
                 assign_default_roles(cursor, user)
-                send_verification_email(conn, user)
+                send_verification_email(conn,
+                                        user,
+                                        client_id=form["client_id"],
+                                        response_type=form["response_type"],
+                                        redirect_uri=form["redirect_uri"])
                 return jsonify(asdict(user))
         except sqlite3.IntegrityError as sq3ie:
             current_app.logger.debug(traceback.format_exc())
@@ -184,40 +204,48 @@ def delete_verification_code(cursor, code: str):
 @users.route("/verify", methods=["GET", "POST"])
 def verify_user():
     """Verify users are not bots."""
-    code = request.args.get("verificationcode",
-                            request.form.get("verificationcode",
-                                             "nosuchcode"))
+    form = request.form
+    loginuri = redirect(url_for(
+        "oauth2.auth.authorise",
+        response_type=(request.args.get("response_type")
+                       or form["response_type"]),
+        client_id=(request.args.get("client_id") or form["client_id"]),
+        redirect_uri=(request.args.get("redirect_uri")
+                      or form["redirect_uri"])))
+    verificationcode = (request.args.get("verificationcode")
+                        or form["verificationcode"])
     with (db.connection(current_app.config["AUTH_DB"]) as conn,
           db.cursor(conn) as cursor):
         cursor.execute("SELECT * FROM user_verification_codes "
                        "WHERE code=:code",
-                       {"code": code})
+                       {"code": verificationcode})
         results = tuple(dict(row) for row in cursor.fetchall())
 
         if not bool(results):
-            raise UserVerificationError(
-                "Invalid verification code: code not found.")
+            flash("Invalid verification code: code not found.",
+                  "alert-danger")
+            return loginuri
 
         if len(results) > 1:
-            delete_verification_code(cursor, code)
-            raise UserVerificationError(
-                "Invalid verification code: code is duplicated.")
+            delete_verification_code(cursor, verificationcode)
+            flash("Invalid verification code: code is duplicated.",
+                  "alert-danger")
+            return loginuri
 
         results = results[0]
         if (datetime.datetime.fromtimestamp(
                 int(results["expires"])) < datetime.datetime.now()):
-            delete_verification_code(cursor, code)
-            raise UserVerificationError(
-                "Invalid verification code: code has expired.")
+            delete_verification_code(cursor, verificationcode)
+            flash("Invalid verification code: code has expired.",
+                  "alert-danger")
 
         # Code is good!
-        delete_verification_code(cursor, code)
+        delete_verification_code(cursor, verificationcode)
         cursor.execute("UPDATE users SET verified=1 WHERE user_id=:user_id",
                        {"user_id": results["user_id"]})
-        return jsonify({
-            "status": "success",
-            "message": "User verification successful!"
-        })
+        flash("E-mail verified successfully! Please login to continue.",
+              "alert-success")
+        return loginuri
 
 
 @users.route("/group", methods=["GET"])
@@ -284,7 +312,11 @@ def handle_unverified():
     # TODO: Maybe have a GN2_URI setting here?
     #       or pass the client_id here?
     return render_template(
-        "users/unverified-user.html", email=form.get("user:email"))
+        "users/unverified-user.html",
+        email=form.get("user:email"),
+        response_type=request.args["response_type"],
+        client_id=request.args["client_id"],
+        redirect_uri=request.args["redirect_uri"])
 
 @users.route("/send-verification", methods=["POST"])
 def send_verification_code():
@@ -297,11 +329,18 @@ def send_verification_code():
             cursor.execute(
                 "DELETE FROM user_verification_codes WHERE user_id=:user_id",
                 {"user_id": str(user.user_id)})
-            send_verification_email(conn, user)
-            return jsonify({
-                "status": "success",
-                "message": "Sent a verification code to your email."
-            })
+            send_verification_email(conn,
+                                    user,
+                                    client_id=form["client_id"],
+                                    response_type=form["response_type"],
+                                    redirect_uri=form["redirect_uri"])
+            flash(("Sent a verification code to your email. "
+                   "Please login to continue."),
+                  "alert-success")
+            return redirect(url_for("oauth2.auth.authorise",
+                                    response_type=form["response_type"],
+                                    client_id=form["client_id"],
+                                    redirect_uri=form["redirect_uri"]))
 
     resp = jsonify({
         "error": "InvalidLogin",

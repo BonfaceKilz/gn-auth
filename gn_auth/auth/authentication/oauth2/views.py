@@ -65,8 +65,12 @@ def authorise():
                 user = user_by_email(conn, email["email"])
                 if valid_login(conn, user, form.get("user:password", "")):
                     if not user.verified:
-                        return redirect(url_for(
-                            "oauth2.users.handle_unverified"), code=307)
+                        return redirect(
+                            url_for("oauth2.users.handle_unverified",
+                                    response_type=form["response_type"],
+                                    client_id=client_id,
+                                    redirect_uri=form["redirect_uri"]),
+                            code=307)
                     return server.create_authorization_response(request=request, grant_user=user)
                 flash(email_passwd_msg, "alert-danger")
                 return redirect_response # type: ignore[return-value]

@@ -1,6 +1,7 @@
 """Endpoints for the oauth2 server"""
 import uuid
 import traceback
+from urllib.parse import urlparse
 
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from email_validator import validate_email, EmailNotValidError
@@ -45,12 +46,14 @@ def authorise():
 
         if request.method == "GET":
             client = server.query_client(request.args.get("client_id"))
+            _src = urlparse(request.args["redirect_uri"])
             return render_template(
                 "oauth2/authorise-user.html",
                 client=client,
                 scope=client.scope,
                 response_type=request.args["response_type"],
-                redirect_uri=request.args["redirect_uri"])
+                redirect_uri=request.args["redirect_uri"],
+                source_uri=f"{_src.scheme}://{_src.netloc}/")
 
         form = request.form
         def __authorise__(conn: db.DbConnection):

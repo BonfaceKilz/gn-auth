@@ -328,7 +328,7 @@ def group_privileges():
             ## the `user_roles(...)` function changed thus this entire function
             ## needs to change or be obsoleted -- also remove the ignore below
             return tuple(
-                privilege for arole in this_user_roles
+                privilege for arole in this_user_roles["roles"]
                 for privilege in arole.privileges) + group_level_roles #type: ignore[attr-defined]
         return jsonify(tuple(
             asdict(priv) for priv in with_db_connection(__list_privileges__)))

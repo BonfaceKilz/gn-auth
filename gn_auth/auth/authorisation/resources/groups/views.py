@@ -3,6 +3,7 @@ The views/routes for the `gn3.auth.authorisation.resources.groups` package.
 """
 import uuid
 import datetime
+import warnings
 from typing import Iterable
 from functools import partial
 from dataclasses import asdict
@@ -330,6 +331,10 @@ def group_privileges():
             return tuple(
                 privilege for arole in this_user_roles["roles"]
                 for privilege in arole.privileges) + group_level_roles #type: ignore[attr-defined]
+        warnings.warn(
+            (f"The `{__name__}.group_privileges` function is broken and will "
+             "be deleted."),
+            PendingDeprecationWarning)
         return jsonify(tuple(
             asdict(priv) for priv in with_db_connection(__list_privileges__)))
 

@@ -17,6 +17,7 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
+from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
@@ -338,6 +339,46 @@ def toggle_public(resource_id: uuid.UUID) -> Response:
             "description": (
                 "Made resource public" if resource.public
                 else "Made resource private")})
+
+
+@resources.route("<uuid:resource_id>/roles", methods=["GET"])
+@require_oauth("profile group resource role")
+def resource_roles(resource_id: uuid.UUID) -> Response:
+    """Return the roles the user has to act on a given resource."""
+    with require_oauth.acquire("profile group resource role") as _token:
+        def __resultset_to_roles__(roles, row):
+            _role = roles.get(row["role_id"])
+            return {
+                **roles,
+                row["role_id"]: Role(
+                    role_id=uuid.UUID(row["role_id"]),
+                    role_name=row["role_name"],
+                    user_editable=bool(row["user_editable"]),
+                    privileges=(
+                        (_role.privileges if bool(_role) else tuple()) +
+                        (Privilege(
+                            privilege_id=row["privilege_id"],
+                            privilege_description=row[
+                                "privilege_description"]),)))
+                }
+
+
+        def __roles__(conn: db.DbConnection) -> tuple[Role, ...]:
+            with db.cursor(conn) as cursor:
+                cursor.execute(
+                    "SELECT r.*, p.* FROM resource_roles AS rr "
+                    "INNER JOIN roles AS r  ON rr.role_id=r.role_id "
+                    "INNER JOIN role_privileges AS rp ON r.role_id=rp.role_id "
+                    "INNER JOIN privileges AS p "
+                    "ON rp.privilege_id=p.privilege_id "
+                    "WHERE rr.resource_id=? AND rr.role_created_by=?",
+                    (str(resource_id), str(_token.user.user_id)))
+                return tuple(reduce(
+                    __resultset_to_roles__, cursor.fetchall(), {}).values())
+
+
+        return jsonify(with_db_connection(__roles__))
+
 
 @resources.route("/authorisation", methods=["POST"])
 def resources_authorisation():

@@ -282,35 +282,6 @@ def link_data() -> Response:
 
         return jsonify(with_db_connection(__link__))
 
-@groups.route("/roles", methods=["GET"])
-@require_oauth("profile group")
-def group_roles():
-    """Return a list of all available group roles."""
-    with require_oauth.acquire("profile group role") as the_token:
-        def __list_roles__(conn: db.DbConnection):
-            ## TODO: Check that user has appropriate privileges
-            with db.cursor(conn) as cursor:
-                group = user_group(conn, the_token.user).maybe(# type: ignore[misc]
-                    DUMMY_GROUP, lambda grp: grp)
-                if group == DUMMY_GROUP:
-                    return tuple()
-                cursor.execute(
-                    "SELECT gr.group_role_id, r.* "
-                    "FROM group_roles AS gr INNER JOIN roles AS r "
-                    "ON gr.role_id=r.role_id "
-                    "WHERE group_id=?",
-                    (str(group.group_id),))
-                return tuple(
-                    GroupRole(uuid.UUID(row["group_role_id"]),
-                              group,
-                              Role(uuid.UUID(row["role_id"]),
-                                   row["role_name"],
-                                   bool(int(row["user_editable"])),
-                                   tuple()))
-                    for row in cursor.fetchall())
-        return jsonify(tuple(
-            asdict(role) for role in with_db_connection(__list_roles__)))
-
 @groups.route("/privileges", methods=["GET"])
 @require_oauth("profile group")
 def group_privileges():

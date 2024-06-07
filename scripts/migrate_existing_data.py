@@ -383,15 +383,13 @@ def entry(authdbpath, mysqldburi):
               biodb.database_connection(mysqldburi) as bioconn):
             admin = select_sys_admin(sys_admins(authconn))
             the_admin_group = admin_group(authconn, admin)
-            resources = default_resources(
-                authconn, the_admin_group)
+            resources = default_resources(authconn, the_admin_group)
             add_resources_to_group(authconn, resources, the_admin_group)
             for resource in resources:
                 assign_data_to_resource(
                     authconn, bioconn, resource, the_admin_group)
                 with authdb.cursor(authconn) as cursor:
-                    __assign_resource_owner_role__(
-                        cursor, resource, admin, the_admin_group)
+                    __assign_resource_owner_role__(cursor, resource, admin)
     except DataNotFound as dnf:
         print(dnf.args[0], file=sys.stderr)
         sys.exit(1)

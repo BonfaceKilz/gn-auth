@@ -34,22 +34,22 @@ from .phenotype import (
 
 from .errors import MissingGroupError
 
-def __assign_resource_owner_role__(cursor, resource, user, group):
+def __assign_resource_owner_role__(cursor, resource, user):
     """Assign `user` the 'Resource Owner' role for `resource`."""
     cursor.execute(
-        "SELECT gr.* FROM group_roles AS gr INNER JOIN roles AS r "
-        "ON gr.role_id=r.role_id WHERE r.role_name='resource-owner' "
-        "AND gr.group_id=?",
-        (str(group.group_id),))
+        "SELECT rr.* FROM resource_roles AS rr INNER JOIN roles AS r "
+        "ON rr.role_id=r.role_id WHERE r.role_name='resource-owner' "
+        "AND rr.resource_id=?",
+        (str(resource.resource_id),))
     role = cursor.fetchone()
     if not role:
         cursor.execute("SELECT * FROM roles WHERE role_name='resource-owner'")
         role = cursor.fetchone()
         cursor.execute(
-            "INSERT INTO group_roles VALUES "
-            "(:group_role_id, :group_id, :role_id)",
-            {"group_role_id": str(uuid4()),
-             "group_id": str(group.group_id),
+            "INSERT INTO resource_roles(resource_id, role_created_by, role_id) "
+            "VALUES (:resource_id, :user_id, :role_id)",
+            {"resource_id": str(resource.resource_id),
+             "user_id": str(user.user_id),
              "role_id": role["role_id"]})
 
     cursor.execute(
@@ -86,7 +86,7 @@ def create_resource(
         cursor.execute("INSERT INTO resource_ownership (group_id, resource_id) "
                        "VALUES (?, ?)",
                        (str(group.group_id), str(resource.resource_id)))
-        __assign_resource_owner_role__(cursor, resource, user, group)
+        __assign_resource_owner_role__(cursor, resource, user)
 
     return resource
 

@@ -20,6 +20,9 @@ from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.roles.models import db_rows_to_roles
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
+from gn_auth.auth.authorisation.roles.models import (role_by_id,
+                                                     db_rows_to_roles,
+                                                     check_user_editable)
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, user_by_id, user_by_email
@@ -495,3 +498,20 @@ def resource_role(resource_id: uuid.UUID, role_id: uuid.UUID):
         }), 500
 
     return asdict(_roles[0])
+
+
+@resources.route("/<uuid:resource_id>/role/<uuid:role_id>/unassign-privilege",
+                 methods=["POST"])
+@require_oauth("profile group resource")
+def unassign_resource_role_privilege(resource_id: uuid.UUID, role_id: uuid.UUID):
+    """Unassign a privilege from a resource role."""
+    with (require_oauth.acquire("profile group resource") as _token,
+          db.connection(app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        # TODO: Check whether role is user editable
+        _role = role_by_id(conn, role_id)
+        check_user_editable(_role)
+        # TODO: Check whether user has correct permissions to edit role for this resource
+        pass
+
+    raise NotImplementedError("Not implemented.")

@@ -8,6 +8,7 @@ from .authorisation.users.views import users
 from .authorisation.users.admin import admin
 from .authorisation.roles.views import roles
 from .authorisation.resources.views import resources
+from .authorisation.privileges.views import privileges
 from .authorisation.resources.groups.views import groups
 from .authorisation.resources.system.views import system
 from .authorisation.resources.inbredset.views import iset
@@ -22,4 +23,5 @@ oauth2.register_blueprint(admin, url_prefix="/admin")
 oauth2.register_blueprint(groups, url_prefix="/group")
 oauth2.register_blueprint(system, url_prefix="/system")
 oauth2.register_blueprint(resources, url_prefix="/resource")
+oauth2.register_blueprint(privileges, url_prefix="/privileges")
 oauth2.register_blueprint(iset, url_prefix="/resource/inbredset")

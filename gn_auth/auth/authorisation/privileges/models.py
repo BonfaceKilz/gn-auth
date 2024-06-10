@@ -1,11 +1,11 @@
 """Handle privileges"""
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Optional
 
 import sqlite3
 
-from ..db import sqlite3 as db
-from ..authentication.users import User
+from gn_auth.auth.db import sqlite3 as db
+from gn_auth.auth.authentication.users import User
 
 
 @dataclass(frozen=True)
@@ -50,3 +50,21 @@ def privileges_by_ids(
         return tuple(
             Privilege(row["privilege_id"], row["privilege_description"])
             for row in cursor.fetchall())
+
+def all_privileges(conn: db.DbConnection) -> tuple[Privilege, ...]:
+    """Retrieve all privileges from the database."""
+    with db.cursor(conn) as cursor:
+        cursor.execute("SELECT * FROM privileges")
+        results = cursor.fetchall()
+
+    return tuple([] if not bool(results)
+                 else (db_row_to_privilege(row) for row in results))
+
+def privilege_by_id(conn: db.DbConnection, privilege_id: str) -> Optional[Privilege]:
+    """Retrieve a privilege by its ID."""
+    with db.cursor(conn) as cursor:
+        cursor.execute("SELECT * FROM privileges WHERE privilege_id=?",
+                       (privilege_id,))
+        row = cursor.fetchone()
+
+    return db_row_to_privilege(row) if bool(row) else None

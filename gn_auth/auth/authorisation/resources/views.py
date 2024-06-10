@@ -341,26 +341,29 @@ def toggle_public(resource_id: uuid.UUID) -> Response:
                 else "Made resource private")})
 
 
+def __resultset_to_roles__(roles, row):
+    """Convert SQLite3 resultset into `Role` objects"""
+    _role = roles.get(row["role_id"])
+    return {
+        **roles,
+        row["role_id"]: Role(
+            role_id=uuid.UUID(row["role_id"]),
+            role_name=row["role_name"],
+            user_editable=bool(row["user_editable"]),
+            privileges=(
+                (_role.privileges if bool(_role) else tuple()) +
+                (Privilege(
+                    privilege_id=row["privilege_id"],
+                    privilege_description=row[
+                        "privilege_description"]),)))
+    }
+
+
 @resources.route("<uuid:resource_id>/roles", methods=["GET"])
 @require_oauth("profile group resource role")
 def resource_roles(resource_id: uuid.UUID) -> Response:
     """Return the roles the user has to act on a given resource."""
     with require_oauth.acquire("profile group resource role") as _token:
-        def __resultset_to_roles__(roles, row):
-            _role = roles.get(row["role_id"])
-            return {
-                **roles,
-                row["role_id"]: Role(
-                    role_id=uuid.UUID(row["role_id"]),
-                    role_name=row["role_name"],
-                    user_editable=bool(row["user_editable"]),
-                    privileges=(
-                        (_role.privileges if bool(_role) else tuple()) +
-                        (Privilege(
-                            privilege_id=row["privilege_id"],
-                            privilege_description=row[
-                                "privilege_description"]),)))
-                }
 
 
         def __roles__(conn: db.DbConnection) -> tuple[Role, ...]:

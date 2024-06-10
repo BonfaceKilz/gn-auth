@@ -21,9 +21,9 @@ def page_not_found(exc):
             "error": exc.name,
             "error_description": (f"The page '{request.url}' does not exist on "
                                   "this server.")
-        })), 404
+        })), exc.code
 
-    return render_template("404.html", page=request.url)
+    return render_template("404.html", page=request.url), exc.code
 
 def handle_authorisation_error(exc: AuthorisationError):
     """Handle AuthorisationError if not handled anywhere else."""

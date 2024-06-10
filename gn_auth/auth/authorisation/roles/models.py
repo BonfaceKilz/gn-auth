@@ -239,3 +239,14 @@ def role_by_id(conn: db.DbConnection, role_id: UUID) -> Optional[Role]:
         raise Exception("Data corruption: Expected a single role.")
 
     return _roles[0]
+
+
+def delete_privilege_from_resource_role(
+        cursor: db.DbCursor,
+        role: Role,
+        privilege_id: str
+):
+    """Delete a privilege from a resource role."""
+    cursor.execute(
+        "DELETE FROM role_privileges WHERE role_id=? AND privilege_id=?",
+        (str(role.role_id), privilege.privilege_id))

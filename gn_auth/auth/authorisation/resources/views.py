@@ -17,12 +17,13 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
-from gn_auth.auth.authorisation.roles.models import db_rows_to_roles
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
-from gn_auth.auth.authorisation.roles.models import (role_by_id,
-                                                     db_rows_to_roles,
-                                                     check_user_editable)
+from gn_auth.auth.authorisation.roles.models import (
+    role_by_id,
+    db_rows_to_roles,
+    check_user_editable,
+    delete_privilege_from_resource_role)
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, user_by_id, user_by_email
@@ -508,10 +509,29 @@ def unassign_resource_role_privilege(resource_id: uuid.UUID, role_id: uuid.UUID)
     with (require_oauth.acquire("profile group resource") as _token,
           db.connection(app.config["AUTH_DB"]) as conn,
           db.cursor(conn) as cursor):
-        # TODO: Check whether role is user editable
         _role = role_by_id(conn, role_id)
-        check_user_editable(_role)
-        # TODO: Check whether user has correct permissions to edit role for this resource
-        pass
+        # check_user_editable(_role) # Check whether role is user editable
 
-    raise NotImplementedError("Not implemented.")
+        _authorised = authorised_for(
+            conn,
+            _token.user,
+            privileges=("resource:role:edit-role",),
+            resource_ids=(resource_id,)).get(resource_id)
+        if not _authorised:
+            raise AuthorisationError(
+                "You are not authorised to edit/update this role.")
+
+        # Actually unassign the privilege from the role
+        privilege_id = request.json.get("privilege_id")
+        if not privilege_id:
+            raise AuthorisationError(
+                "You need to provide a privilege to unassign")
+
+        delete_privilege_from_resource_role(cursor,
+                                            _role,
+                                            privilege_by_id(privilege_id))
+
+        return jsonify({
+            "status": "Success",
+            "message": "Privilege was unassigned."
+        }), 200

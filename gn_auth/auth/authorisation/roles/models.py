@@ -27,8 +27,8 @@ class Role:
 def check_user_editable(role: Role):
     """Raise an exception if `role` is not user editable."""
     if not role.user_editable:
-        raise AuthorisationError(
-            f"The role `{role.role_name}` is not user editable.")
+        raise AuthorisationError(f"The role `{role.role_name}` is a default "
+                                 "role and thus cannot be edited/changed.")
 
 
 def db_rows_to_roles(rows) -> tuple[Role, ...]:

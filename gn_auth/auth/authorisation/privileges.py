@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+import sqlite3
+
 from ..db import sqlite3 as db
 from ..authentication.users import User
 
@@ -11,6 +13,12 @@ class Privilege:
     """Class representing a privilege: creates immutable objects."""
     privilege_id: str
     privilege_description: str
+
+
+def db_row_to_privilege(row: sqlite3.Row) -> Privilege:
+    "Convert single db row into a privilege object."
+    return Privilege(privilege_id=row["privilege_id"],
+                     privilege_description=row["privilege_description"])
 
 
 def user_privileges(conn: db.DbConnection, user: User) -> Iterable[Privilege]:

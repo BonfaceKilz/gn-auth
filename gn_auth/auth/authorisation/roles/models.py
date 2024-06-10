@@ -31,6 +31,29 @@ def check_user_editable(role: Role):
         raise AuthorisationError(
             f"The role `{role.role_name}` is not user editable.")
 
+
+def db_rows_to_roles(rows) -> tuple[Role, ...]:
+    """Convert a bunch of db rows into a bunch of `Role` objects."""
+    def __resultset_to_roles__(roles, row):
+        """Convert SQLite3 resultset into `Role` objects"""
+        _role = roles.get(row["role_id"])
+        return {
+            **roles,
+            row["role_id"]: Role(
+                role_id=UUID(row["role_id"]),
+                role_name=row["role_name"],
+                user_editable=bool(row["user_editable"]),
+                privileges=(
+                    (_role.privileges if bool(_role) else tuple()) +
+                    (Privilege(
+                        privilege_id=row["privilege_id"],
+                        privilege_description=row[
+                            "privilege_description"]),)))
+        }
+
+    return tuple(reduce(__resultset_to_roles__, rows, {}).values()
+                 if bool(rows) else [])
+
 @authorised_p(
     privileges = ("group:role:create-role",),
     error_description="Could not create role")

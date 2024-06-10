@@ -13,7 +13,7 @@ from ...db import sqlite3 as db
 from ...authentication.users import User
 
 from ..checks import authorised_p
-from ..privileges import Privilege
+from ..privileges import Privilege, db_row_to_privilege
 
 
 @dataclass(frozen=True)
@@ -104,9 +104,7 @@ def __organise_privileges__(resources, row) -> dict:
                     role.role_id,
                     role.role_name,
                     role.user_editable,
-                    role.privileges + (Privilege(
-                        row["privilege_id"],
-                        row["privilege_description"]),)
+                    role.privileges + (db_row_to_privilege(row),)
                 )
             }
         }

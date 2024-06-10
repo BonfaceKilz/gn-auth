@@ -17,6 +17,7 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
+from gn_auth.auth.authorisation.roles.models import db_rows_to_roles
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
 
@@ -341,24 +342,6 @@ def toggle_public(resource_id: uuid.UUID) -> Response:
                 else "Made resource private")})
 
 
-def __resultset_to_roles__(roles, row):
-    """Convert SQLite3 resultset into `Role` objects"""
-    _role = roles.get(row["role_id"])
-    return {
-        **roles,
-        row["role_id"]: Role(
-            role_id=uuid.UUID(row["role_id"]),
-            role_name=row["role_name"],
-            user_editable=bool(row["user_editable"]),
-            privileges=(
-                (_role.privileges if bool(_role) else tuple()) +
-                (Privilege(
-                    privilege_id=row["privilege_id"],
-                    privilege_description=row[
-                        "privilege_description"]),)))
-    }
-
-
 @resources.route("<uuid:resource_id>/roles", methods=["GET"])
 @require_oauth("profile group resource role")
 def resource_roles(resource_id: uuid.UUID) -> Response:
@@ -376,9 +359,9 @@ def resource_roles(resource_id: uuid.UUID) -> Response:
                     "ON rp.privilege_id=p.privilege_id "
                     "WHERE rr.resource_id=? AND rr.role_created_by=?",
                     (str(resource_id), str(_token.user.user_id)))
-                return tuple(reduce(
-                    __resultset_to_roles__, cursor.fetchall(), {}).values())
+                results = cursor.fetchall()
 
+            return db_rows_to_roles(results)
 
         return jsonify(with_db_connection(__roles__))
 
@@ -501,7 +484,7 @@ def resource_role(resource_id: uuid.UUID, role_id: uuid.UUID):
             "message": msg
         }), 404
 
-    _roles = tuple(reduce(__resultset_to_roles__, results, {}).values())
+    _roles = db_rows_to_roles(results)
     if len(_roles) > 1:
         msg = f"There is data corruption in the database."
         return jsonify({

@@ -474,3 +474,41 @@ def get_user_roles_on_resource(name) -> Response:
         token = jwt.encode(jose_header, payload, app.config["SSL_PRIVATE_KEY"])
         response.headers["Authorization"] = f"Bearer {token.decode('utf-8')}"
         return response
+
+
+@resources.route("/<uuid:resource_id>/role/<uuid:role_id>", methods=["GET"])
+@require_oauth("profile group resource")
+def resource_role(resource_id: uuid.UUID, role_id: uuid.UUID):
+    """Fetch details for resource."""
+    with (require_oauth.acquire("profile group resource") as _token,
+          db.connection(app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        cursor.execute(
+            "SELECT rr.role_created_by, r.*, p.* FROM resource_roles AS rr "
+            "INNER JOIN roles AS r ON rr.role_id=r.role_id "
+            "INNER JOIN role_privileges AS rp ON r.role_id=rp.role_id "
+            "INNER JOIN privileges AS p ON rp.privilege_id=p.privilege_id "
+            "WHERE rr.resource_id=? AND rr.role_created_by=? AND rr.role_id=?",
+            (str(resource_id), str(_token.user.user_id), str(role_id)))
+        results = cursor.fetchall()
+
+    if not bool(results):
+        msg = f"Could not find role with ID '{role_id}'."
+        return jsonify({
+            "error": "RoleNotFound",
+            "error_description": msg,
+            "error_message": msg,
+            "message": msg
+        }), 404
+
+    _roles = tuple(reduce(__resultset_to_roles__, results, {}).values())
+    if len(_roles) > 1:
+        msg = f"There is data corruption in the database."
+        return jsonify({
+            "error": "RoleNotFound",
+            "error_description": msg,
+            "error_message": msg,
+            "message": msg
+        }), 500
+
+    return asdict(_roles[0])

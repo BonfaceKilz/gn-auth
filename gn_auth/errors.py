@@ -8,6 +8,7 @@ from gn_auth.auth.errors import AuthorisationError
 
 def add_trace(exc: Exception, errobj: dict) -> dict:
     """Add the traceback to the error handling object."""
+    current_app.logger.debug(traceback.format_exception(exc))
     return {
         **errobj,
         "error-trace": "".join(traceback.format_exception(exc))
@@ -25,6 +26,20 @@ def page_not_found(exc):
 
     return render_template("404.html", page=request.url), exc.code
 
+
+def handle_general_exception(exc: Exception):
+    content_type = request.content_type
+    if bool(content_type) and content_type.lower() == "application/json":
+        msg = ("The following exception was raised while attempting to access "
+               f"{request.url}: {exc.args[0]}")
+        return jsonify(add_trace(exc, {
+            "error": type(exc).__name__,
+            "error_description": msg
+        })), 500
+
+    return render_template("500.html", page=request.url), 500
+
+
 def handle_authorisation_error(exc: AuthorisationError):
     """Handle AuthorisationError if not handled anywhere else."""
     current_app.logger.error(exc)
@@ -34,8 +49,9 @@ def handle_authorisation_error(exc: AuthorisationError):
     })), exc.error_code
 
 __error_handlers__ = {
-    AuthorisationError: handle_authorisation_error,
-    NotFound: page_not_found
+    NotFound: page_not_found,
+    Exception: handle_general_exception,
+    AuthorisationError: handle_authorisation_error
 }
 def register_error_handlers(app: Flask):
     """Register ALL defined error handlers"""

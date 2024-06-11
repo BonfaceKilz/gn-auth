@@ -169,10 +169,27 @@ def resource_users(resource_id: UUID):
     """Retrieve all users with access to the given resource."""
     with require_oauth.acquire("profile group resource") as the_token:
         def __the_users__(conn: db.DbConnection):
-            authorised = authorised_for(
-                conn, the_token.user,
-                ("group:resource:edit-resource","group:resource:view-resource"),
+            ########## BEGIN: HACK ##########
+            # This hack gets the UI to work, but needs replacing.
+            # It resolves (albeit, temporarily) the bug introduced after a
+            # refactor that made the system itself, and the groups into
+            # resources.
+            grouplevelauth = authorised_for(
+                conn,
+                the_token.user,
+                ("group:resource:view-resource",),
                 (resource_id,))
+            systemlevelauth = __pk__authorised_for(
+                conn,
+                the_token.user,
+                ("system:user:list",),
+                (resource_id,))
+            authorised = {
+                key: (grouplevelauth.get(key, False)
+                      or systemlevelauth.get(key, False))
+                for key in grouplevelauth.keys() | systemlevelauth.keys()
+            }
+            ########## END: HACK ##########
             if authorised.get(resource_id, False):
                 with db.cursor(conn) as cursor:
                     def __organise_users_n_roles__(users_n_roles, row):

@@ -179,7 +179,7 @@ def resource_users(resource_id: UUID):
                 the_token.user,
                 ("group:resource:view-resource",),
                 (resource_id,))
-            systemlevelauth = __pk__authorised_for(
+            systemlevelauth = authorised_for(
                 conn,
                 the_token.user,
                 ("system:user:list",),

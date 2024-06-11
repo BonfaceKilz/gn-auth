@@ -1,5 +1,5 @@
 """The views/routes for the resources package"""
-import uuid
+from uuid import UUID, uuid4
 import json
 import operator
 import sqlite3
@@ -55,7 +55,7 @@ def create_resource() -> Response:
     with require_oauth.acquire("profile group resource") as the_token:
         form = request.form
         resource_name = form.get("resource_name")
-        resource_category_id = uuid.UUID(form.get("resource_category"))
+        resource_category_id = UUID(form.get("resource_category"))
         db_uri = app.config["AUTH_DB"]
         with db.connection(db_uri) as conn:
             try:
@@ -77,7 +77,7 @@ def create_resource() -> Response:
 
 @resources.route("/view/<uuid:resource_id>")
 @require_oauth("profile group resource")
-def view_resource(resource_id: uuid.UUID) -> Response:
+def view_resource(resource_id: UUID) -> Response:
     """View a particular resource's details."""
     with require_oauth.acquire("profile group resource") as the_token:
         db_uri = app.config["AUTH_DB"]
@@ -107,7 +107,7 @@ def __safe_get_requests_count__(key: str = "count_per_page") -> int:
 
 @resources.route("/view/<uuid:resource_id>/data")
 @require_oauth("profile group resource")
-def view_resource_data(resource_id: uuid.UUID) -> Response:
+def view_resource_data(resource_id: UUID) -> Response:
     """Retrieve a particular resource's data."""
     with require_oauth.acquire("profile group resource") as the_token:
         db_uri = app.config["AUTH_DB"]
@@ -136,8 +136,8 @@ def link_data():
         with require_oauth.acquire("profile group resource") as the_token:
             def __link__(conn: db.DbConnection):
                 return link_data_to_resource(
-                    conn, the_token.user, uuid.UUID(form["resource_id"]),
-                    form["dataset_type"], uuid.UUID(form["data_link_id"]))
+                    conn, the_token.user, UUID(form["resource_id"]),
+                    form["dataset_type"], UUID(form["data_link_id"]))
 
             return jsonify(with_db_connection(__link__))
     except AssertionError as aserr:
@@ -157,15 +157,15 @@ def unlink_data():
         with require_oauth.acquire("profile group resource") as the_token:
             def __unlink__(conn: db.DbConnection):
                 return unlink_data_from_resource(
-                    conn, the_token.user, uuid.UUID(form["resource_id"]),
-                    uuid.UUID(form["data_link_id"]))
+                    conn, the_token.user, UUID(form["resource_id"]),
+                    UUID(form["data_link_id"]))
             return jsonify(with_db_connection(__unlink__))
     except AssertionError as aserr:
         raise InvalidData(aserr.args[0]) from aserr
 
 @resources.route("<uuid:resource_id>/user/list", methods=["GET"])
 @require_oauth("profile group resource")
-def resource_users(resource_id: uuid.UUID):
+def resource_users(resource_id: UUID):
     """Retrieve all users with access to the given resource."""
     with require_oauth.acquire("profile group resource") as the_token:
         def __the_users__(conn: db.DbConnection):
@@ -176,18 +176,18 @@ def resource_users(resource_id: uuid.UUID):
             if authorised.get(resource_id, False):
                 with db.cursor(conn) as cursor:
                     def __organise_users_n_roles__(users_n_roles, row):
-                        user_id = uuid.UUID(row["user_id"])
+                        user_id = UUID(row["user_id"])
                         user = users_n_roles.get(user_id, {}).get(
                             "user", User.from_sqlite3_row(row))
                         role = Role(
-                            uuid.UUID(row["role_id"]), row["role_name"],
+                            UUID(row["role_id"]), row["role_name"],
                             bool(int(row["user_editable"])), tuple())
                         return {
                             **users_n_roles,
                             user_id: {
                                 "user": user,
                                 "user_group": Group(
-                                    uuid.UUID(row["group_id"]), row["group_name"],
+                                    UUID(row["group_id"]), row["group_name"],
                                     json.loads(row["group_metadata"])),
                                 "roles": users_n_roles.get(
                                     user_id, {}).get("roles", tuple()) + (role,)
@@ -218,7 +218,7 @@ def resource_users(resource_id: uuid.UUID):
 
 @resources.route("<uuid:resource_id>/user/assign", methods=["POST"])
 @require_oauth("profile group resource role")
-def assign_role_to_user(resource_id: uuid.UUID) -> Response:
+def assign_role_to_user(resource_id: UUID) -> Response:
     """Assign a role on the specified resource to a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
@@ -235,7 +235,7 @@ def assign_role_to_user(resource_id: uuid.UUID) -> Response:
                     conn, resource, user,
                     group_role_by_id(conn,
                                      resource_owner(conn, resource),
-                                     uuid.UUID(group_role_id)))
+                                     UUID(group_role_id)))
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 
@@ -243,7 +243,7 @@ def assign_role_to_user(resource_id: uuid.UUID) -> Response:
 
 @resources.route("<uuid:resource_id>/user/unassign", methods=["POST"])
 @require_oauth("profile group resource role")
-def unassign_role_to_user(resource_id: uuid.UUID) -> Response:
+def unassign_role_to_user(resource_id: UUID) -> Response:
     """Unassign a role on the specified resource from a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
@@ -256,10 +256,10 @@ def unassign_role_to_user(resource_id: uuid.UUID) -> Response:
             def __assign__(conn: db.DbConnection) -> dict:
                 resource = resource_by_id(conn, the_token.user, resource_id)
                 return unassign_resource_user(
-                    conn, resource, user_by_id(conn, uuid.UUID(user_id)),
+                    conn, resource, user_by_id(conn, UUID(user_id)),
                     group_role_by_id(conn,
                                      resource_owner(conn, resource),
-                                     uuid.UUID(group_role_id)))
+                                     UUID(group_role_id)))
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 
@@ -315,7 +315,7 @@ def __assign_revoke_public_view__(cursor, user_id, resource_id, public):
 
 @resources.route("<uuid:resource_id>/toggle-public", methods=["POST"])
 @require_oauth("profile group resource role")
-def toggle_public(resource_id: uuid.UUID) -> Response:
+def toggle_public(resource_id: UUID) -> Response:
     """Make a resource public if it is private, or private if public."""
     with require_oauth.acquire("profile group resource") as the_token:
         def __toggle__(conn: db.DbConnection) -> Resource:
@@ -348,7 +348,7 @@ def toggle_public(resource_id: uuid.UUID) -> Response:
 
 @resources.route("<uuid:resource_id>/roles", methods=["GET"])
 @require_oauth("profile group resource role")
-def resource_roles(resource_id: uuid.UUID) -> Response:
+def resource_roles(resource_id: UUID) -> Response:
     """Return the roles the user has to act on a given resource."""
     with require_oauth.acquire("profile group resource role") as _token:
 
@@ -376,7 +376,7 @@ def resources_authorisation():
     try:
         data = request.json
         assert (data and "resource-ids" in data)
-        resource_ids = tuple(uuid.UUID(resid) for resid in data["resource-ids"])
+        resource_ids = tuple(UUID(resid) for resid in data["resource-ids"])
         pubres = tuple(
             res.resource_id for res in with_db_connection(public_resources)
             if res.resource_id in resource_ids)
@@ -432,7 +432,7 @@ def get_user_roles_on_resource(name) -> Response:
                             _extract_privilege_id(role.privileges)
             for role in
                             resources_.get(
-                                uuid.UUID(resid), {}
+                                UUID(resid), {}
                             ).get("roles", tuple())), [])
         response = make_response({
             # Flatten this list
@@ -452,7 +452,7 @@ def get_user_roles_on_resource(name) -> Response:
             "sub": name,  # Subject Claim
             "aud": f"Edit {name}",  # Audience Claim
             "exp": iat + 300,  # Expiration Time Claim
-            "jti": str(uuid.uuid4()),  # Unique Identifier for this token
+            "jti": str(uuid4()),  # Unique Identifier for this token
             # Private Claims
             "account-name": _token.user.name,
             "email": _token.user.email,
@@ -465,7 +465,7 @@ def get_user_roles_on_resource(name) -> Response:
 
 @resources.route("/<uuid:resource_id>/role/<uuid:role_id>", methods=["GET"])
 @require_oauth("profile group resource")
-def resource_role(resource_id: uuid.UUID, role_id: uuid.UUID):
+def resource_role(resource_id: UUID, role_id: UUID):
     """Fetch details for resource."""
     with (require_oauth.acquire("profile group resource") as _token,
           db.connection(app.config["AUTH_DB"]) as conn,
@@ -504,7 +504,7 @@ def resource_role(resource_id: uuid.UUID, role_id: uuid.UUID):
 @resources.route("/<uuid:resource_id>/role/<uuid:role_id>/unassign-privilege",
                  methods=["POST"])
 @require_oauth("profile group resource")
-def unassign_resource_role_privilege(resource_id: uuid.UUID, role_id: uuid.UUID):
+def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
     """Unassign a privilege from a resource role."""
     with (require_oauth.acquire("profile group resource") as _token,
           db.connection(app.config["AUTH_DB"]) as conn,

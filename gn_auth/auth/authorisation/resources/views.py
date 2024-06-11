@@ -535,3 +535,21 @@ def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
             "status": "Success",
             "message": "Privilege was unassigned."
         }), 200
+
+
+@resources.route("/<uuid:resource_id>/role/<uuid:role_id>/users",
+                 methods=["GET"])
+@require_oauth("profile group resource")
+def resource_role_users(resource_id: UUID, role_id: UUID):
+    """Retrieve users assigned role on resource."""
+    with (require_oauth.acquire("profile group resource") as _token,
+          db.connection(app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        # MAYBE: check user has something like resource:role:view-users
+        cursor.execute(
+            "SELECT u.* FROM user_roles AS ur INNER JOIN users AS u "
+            "ON ur.user_id=u.user_id WHERE ur.resource_id=? AND ur.role_id=?",
+            (str(resource_id), str(role_id)))
+        results = cursor.fetchall() or []
+
+    return jsonify(tuple(User.from_sqlite3_row(row) for row in results)), 200

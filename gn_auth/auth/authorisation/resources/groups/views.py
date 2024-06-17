@@ -3,8 +3,6 @@ The views/routes for the `gn3.auth.authorisation.resources.groups` package.
 """
 import uuid
 import datetime
-import warnings
-from typing import Iterable
 from functools import partial
 from dataclasses import asdict
 
@@ -15,10 +13,8 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db import mariadb as gn3db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
-from gn_auth.auth.authorisation.roles.models import user_roles
-
 from gn_auth.auth.authorisation.checks import authorised_p
-from gn_auth.auth.authorisation.privileges import Privilege, privileges_by_ids
+from gn_auth.auth.authorisation.privileges import privileges_by_ids
 from gn_auth.auth.errors import InvalidData, NotFoundError, AuthorisationError
 
 from gn_auth.auth.authentication.users import User

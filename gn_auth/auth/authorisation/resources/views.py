@@ -617,8 +617,7 @@ def create_resource_role(resource_id: UUID):
 def user_resource_roles(resource_id: UUID, user_id: UUID):
     """Get a specific user's roles on a particular resource."""
     with (require_oauth.acquire("profile group resource") as _token,
-          db.connection(app.config["AUTH_DB"]) as conn,
-          db.cursor(conn) as cursor):
+          db.connection(app.config["AUTH_DB"]) as conn):
         if _token.user.user_id != user_id:
             raise AuthorisationError(
                 "You are not authorised to view the roles this user has.")

@@ -37,7 +37,10 @@ def handle_general_exception(exc: Exception):
             "error_description": msg
         })), 500
 
-    return render_template("500.html", page=request.url), 500
+    return render_template("50x.html",
+                           page=request.url,
+                           error=exc,
+                           trace=traceback.format_exception(exc)), 500
 
 
 def handle_authorisation_error(exc: AuthorisationError):

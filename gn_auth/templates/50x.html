@@ -1,0 +1,25 @@
+{%extends "base.html"%}
+
+{%block title%}
+{{error.status_code or 500}}: {{error.description or "Generic Exception"}}
+{%endblock%}
+
+{%block pagetitle%}
+{{error.status_code or 500}}: {{error.description or "Generic Exception"}}
+{%endblock%}
+
+{%block content%}
+
+<p>The system has done something it should not! This is our fault.</p>
+
+<p>
+  Please send us the details below to help us figure out what we did wrong and
+  fix it.
+</p>
+
+<div class="row">
+  <p><strong>URI: {{page}}</p>
+  <pre>{{"".join(trace)}}</pre>
+</div>
+
+{%endblock%}

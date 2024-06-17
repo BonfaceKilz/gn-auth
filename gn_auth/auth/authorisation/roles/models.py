@@ -247,7 +247,7 @@ def role_by_id(conn: db.DbConnection, role_id: UUID) -> Optional[Role]:
 def delete_privilege_from_resource_role(
         cursor: db.DbCursor,
         role: Role,
-        privilege_id: str
+        privilege: Privilege
 ):
     """Delete a privilege from a resource role."""
     cursor.execute(

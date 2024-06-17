@@ -19,13 +19,16 @@ from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.roles.models import create_role
-from gn_auth.auth.authorisation.privileges import Privilege
-from gn_auth.auth.authorisation.privileges.models import privileges_by_ids
-from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
+from gn_auth.auth.errors import (
+    InvalidData,
+    InconsistencyError,
+    AuthorisationError)
+from gn_auth.auth.authorisation.privileges import (
+    privilege_by_id,
+    privileges_by_ids)
 from gn_auth.auth.authorisation.roles.models import (
     role_by_id,
     db_rows_to_roles,
-    check_user_editable,
     delete_privilege_from_resource_role)
 
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
@@ -510,7 +513,7 @@ def resource_role(resource_id: UUID, role_id: UUID):
 
     _roles = db_rows_to_roles(results)
     if len(_roles) > 1:
-        msg = f"There is data corruption in the database."
+        msg = "There is data corruption in the database."
         return jsonify({
             "error": "RoleNotFound",
             "error_description": msg,
@@ -530,7 +533,6 @@ def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
           db.connection(app.config["AUTH_DB"]) as conn,
           db.cursor(conn) as cursor):
         _role = role_by_id(conn, role_id)
-        # check_user_editable(_role) # Check whether role is user editable
 
         _authorised = authorised_for(
             conn,
@@ -549,7 +551,7 @@ def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
 
         delete_privilege_from_resource_role(cursor,
                                             _role,
-                                            privilege_by_id(privilege_id))
+                                            privilege_by_id(conn, privilege_id))
 
         return jsonify({
             "status": "Success",

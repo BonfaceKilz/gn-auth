@@ -15,7 +15,6 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db import mariadb as gn3db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
-from gn_auth.auth.authorisation.roles.models import Role
 from gn_auth.auth.authorisation.roles.models import user_roles
 
 from gn_auth.auth.authorisation.checks import authorised_p

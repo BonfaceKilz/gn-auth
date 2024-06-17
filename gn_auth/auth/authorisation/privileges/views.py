@@ -1,6 +1,4 @@
 """Routes for privileges."""
-from dataclasses import asdict
-
 from werkzeug.exceptions import NotFound
 from flask import jsonify, Blueprint, current_app as app
 

@@ -278,42 +278,6 @@ def link_data() -> Response:
         return jsonify(with_db_connection(__link__))
 
 
-@groups.route("/role/create", methods=["POST"])
-@require_oauth("profile group")
-def create_group_role():
-    """Create a new group role."""
-    with require_oauth.acquire("profile group role") as the_token:
-        ## TODO: Check that user has appropriate privileges
-        @authorised_p(("group:role:create-role",),
-                      "You do not have the privilege to create new roles",
-                      oauth2_scope="profile group role")
-        def __create__(conn: db.DbConnection) -> GroupRole:
-            ## TODO: Check user cannot assign any privilege they don't have.
-            form = request.json
-            role_name = form.get("role_name", "").strip()
-            privileges_ids = form.getlist("privileges[]")
-            if len(role_name) == 0:
-                raise InvalidData("Role name not provided!")
-            if len(privileges_ids) == 0:
-                raise InvalidData(
-                    "At least one privilege needs to be provided.")
-
-            group = user_group(conn, the_token.user).maybe(# type: ignore[misc]
-                    DUMMY_GROUP, lambda grp: grp)
-
-            if group == DUMMY_GROUP:
-                raise AuthorisationError(
-                    "A user without a group cannot create a new role.")
-            privileges = privileges_by_ids(conn, tuple(privileges_ids))
-            if len(privileges_ids) != len(privileges):
-                raise InvalidData(
-                    f"{len(privileges_ids) - len(privileges)} of the selected "
-                    "privileges were not found in the database.")
-
-            return _create_group_role(conn, group, role_name, privileges)
-
-        return jsonify(with_db_connection(__create__))
-
 @groups.route("/role/<uuid:group_role_id>", methods=["GET"])
 @require_oauth("profile group")
 def view_group_role(group_role_id: uuid.UUID):

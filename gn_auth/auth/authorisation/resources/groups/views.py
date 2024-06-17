@@ -281,34 +281,6 @@ def link_data() -> Response:
 
         return jsonify(with_db_connection(__link__))
 
-@groups.route("/privileges", methods=["GET"])
-@require_oauth("profile group")
-def group_privileges():
-    """Return a list of all available group roles."""
-    with require_oauth.acquire("profile group role") as the_token:
-        def __list_privileges__(conn: db.DbConnection) -> Iterable[Privilege]:
-            ## TODO: Check that user has appropriate privileges
-            this_user_roles = user_roles(conn, the_token.user)
-            with db.cursor(conn) as cursor:
-                cursor.execute("SELECT * FROM privileges "
-                               "WHERE privilege_id LIKE 'group:%'")
-                group_level_roles = tuple(
-                    Privilege(row["privilege_id"], row["privilege_description"])
-                    for row in cursor.fetchall())
-
-            ## the `user_roles(...)` function changed thus this entire function
-            ## needs to change or be obsoleted -- also remove the ignore below
-            return tuple(
-                privilege for arole in this_user_roles["roles"]
-                for privilege in arole.privileges) + group_level_roles #type: ignore[attr-defined]
-        warnings.warn(
-            (f"The `{__name__}.group_privileges` function is broken and will "
-             "be deleted."),
-            PendingDeprecationWarning)
-        return jsonify(tuple(
-            asdict(priv) for priv in with_db_connection(__list_privileges__)))
-
-
 
 @groups.route("/role/create", methods=["POST"])
 @require_oauth("profile group")

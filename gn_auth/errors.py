@@ -8,7 +8,9 @@ from gn_auth.auth.errors import AuthorisationError
 
 def add_trace(exc: Exception, errobj: dict) -> dict:
     """Add the traceback to the error handling object."""
-    current_app.logger.debug(traceback.format_exception(exc))
+    current_app.logger.debug("Endpoint: %s\n%s",
+                             request.url,
+                             traceback.format_exception(exc))
     return {
         **errobj,
         "error-trace": "".join(traceback.format_exception(exc))
@@ -28,10 +30,11 @@ def page_not_found(exc):
 
 
 def handle_general_exception(exc: Exception):
+    """Handle generic unhandled exceptions."""
     content_type = request.content_type
     if bool(content_type) and content_type.lower() == "application/json":
         msg = ("The following exception was raised while attempting to access "
-               f"{request.url}: {exc.args[0]}")
+               f"{request.url}: {' '.join(exc.args)}")
         return jsonify(add_trace(exc, {
             "error": type(exc).__name__,
             "error_description": msg

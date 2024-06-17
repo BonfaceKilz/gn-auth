@@ -7,6 +7,7 @@ from typing import Sequence, Iterable, Optional
 from pymonad.either import Left, Right, Either
 
 from gn_auth.auth.errors import NotFoundError, AuthorisationError
+from gn_auth.auth.authorisation.resources.base import Resource
 
 from ...db import sqlite3 as db
 from ...authentication.users import User
@@ -130,6 +131,27 @@ def user_roles(conn: db.DbConnection, user: User) -> Sequence[dict]:
         } for row in reduce(
             __organise_privileges__, cursor.fetchall(), {}).values())
     return tuple()
+
+
+def user_resource_roles(
+        conn: db.DbConnection,
+        user: User,
+        resource: Resource
+) -> tuple[Role]:
+    """Retrieve all roles assigned to a user for a particular resource."""
+    with db.cursor(conn) as cursor:
+        cursor.execute(
+            "SELECT ur.resource_id, ur.user_id, r.*, p.* "
+            "FROM user_roles AS ur "
+            "INNER JOIN roles AS r ON ur.role_id=r.role_id "
+            "INNER JOIN role_privileges AS rp ON r.role_id=rp.role_id "
+            "INNER JOIN privileges AS p ON rp.privilege_id=p.privilege_id "
+            "WHERE ur.user_id=? AND ur.resource_id=?",
+            (str(user.user_id), str(resource.resource_id)))
+
+        return db_rows_to_roles(cursor.fetchall())
+    return tuple()
+
 
 def user_role(conn: db.DbConnection, user: User, role_id: UUID) -> Either:
     """Retrieve a specific non-resource role assigned to the user."""

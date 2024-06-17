@@ -18,7 +18,9 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
-from gn_auth.auth.authorisation.roles.models import create_role
+from gn_auth.auth.authorisation.roles.models import (
+    create_role,
+    user_resource_roles as _user_resource_roles)
 from gn_auth.auth.errors import (
     InvalidData,
     InconsistencyError,
@@ -609,3 +611,21 @@ def create_resource_role(resource_id: UUID):
             })
 
     return jsonify(asdict(role))
+
+@resources.route("/<uuid:resource_id>/users/<uuid:user_id>/roles", methods=["GET"])
+@require_oauth("profile group resource role")
+def user_resource_roles(resource_id: UUID, user_id: UUID):
+    """Get a specific user's roles on a particular resource."""
+    with (require_oauth.acquire("profile group resource") as _token,
+          db.connection(app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        if _token.user.user_id != user_id:
+            raise AuthorisationError(
+                "You are not authorised to view the roles this user has.")
+
+        _resource = resource_by_id(conn, _token.user, resource_id)
+        if not bool(_resource):
+            raise BadRequest("No resource was found with the given ID.")
+
+        return jsonify([asdict(role) for role in
+                        _user_resource_roles(conn, _token.user, _resource)])

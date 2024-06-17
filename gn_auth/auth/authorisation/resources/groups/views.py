@@ -50,7 +50,7 @@ def list_groups():
 def create_group():
     """Create a new group."""
     with require_oauth.acquire("profile group") as the_token:
-        group_name=request.form.get("group_name", "").strip()
+        group_name=request.json.get("group_name", "").strip()
         if not bool(group_name):
             raise GroupCreationError("Could not create the group.")
 
@@ -58,7 +58,7 @@ def create_group():
         with db.connection(db_uri) as conn:
             user = the_token.user
             new_group = _create_group(
-                conn, group_name, user, request.form.get("group_description"))
+                conn, group_name, user, request.json.get("group_description"))
             return jsonify({
                 **asdict(new_group), "group_leader": asdict(user)
             })
@@ -107,7 +107,7 @@ def request_to_join(group_id: uuid.UUID) -> Response:
             }
 
     with require_oauth.acquire("profile group") as the_token:
-        form = request.form
+        form = request.json
         results = with_db_connection(partial(
             __request__, user=the_token.user, group_id=group_id, message=form.get(
                 "message", "I hereby request that you add me to your group.")))
@@ -126,7 +126,7 @@ def list_join_requests() -> Response:
 def accept_join_requests() -> Response:
     """Accept a join request."""
     with require_oauth.acquire("profile group") as the_token:
-        form = request.form
+        form = request.json
         request_id = uuid.UUID(form.get("request_id"))
         return jsonify(with_db_connection(partial(
             accept_reject_join_request, request_id=request_id,
@@ -137,7 +137,7 @@ def accept_join_requests() -> Response:
 def reject_join_requests() -> Response:
     """Reject a join request."""
     with require_oauth.acquire("profile group") as the_token:
-        form = request.form
+        form = request.json
         request_id = uuid.UUID(form.get("request_id"))
         return jsonify(with_db_connection(partial(
             accept_reject_join_request, request_id=request_id,
@@ -268,7 +268,7 @@ def unlinked_data(resource_type: str) -> Response:
 def link_data() -> Response:
     """Link selected data to specified group."""
     with require_oauth.acquire("profile group resource") as _the_token:
-        form = request.form
+        form = request.json
         group_id = uuid.UUID(form["group_id"])
         dataset_ids = form.getlist("dataset_ids")
         dataset_type = form.get("dataset_type")
@@ -322,7 +322,7 @@ def create_group_role():
                       oauth2_scope="profile group role")
         def __create__(conn: db.DbConnection) -> GroupRole:
             ## TODO: Check user cannot assign any privilege they don't have.
-            form = request.form
+            form = request.json
             role_name = form.get("role_name", "").strip()
             privileges_ids = form.getlist("privileges[]")
             if len(role_name) == 0:
@@ -374,7 +374,7 @@ def __add_remove_priv_to_from_role__(conn: db.DbConnection,
         raise AuthorisationError(
             "You need to be a member of a group to edit roles.")
     try:
-        privilege_id = request.form.get("privilege_id", "")
+        privilege_id = request.json.get("privilege_id", "")
         assert bool(privilege_id), "Privilege to add must be provided."
         privileges = privileges_by_ids(conn, (privilege_id,))
         if len(privileges) == 0:

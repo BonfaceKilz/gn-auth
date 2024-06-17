@@ -166,7 +166,7 @@ def register_user() -> Response:
         __assert_not_logged_in__(conn)
 
         try:
-            form = request.form
+            form = request.json
             email = validate_email(form.get("email", "").strip(),
                                    check_deliverability=True)
             password = validate_password(
@@ -204,7 +204,7 @@ def delete_verification_code(cursor, code: str):
 @users.route("/verify", methods=["GET", "POST"])
 def verify_user():
     """Verify users are not bots."""
-    form = request.form
+    form = request.json
     loginuri = redirect(url_for(
         "oauth2.auth.authorise",
         response_type=(request.args.get("response_type")
@@ -308,7 +308,7 @@ def list_all_users() -> Response:
 @users.route("/handle-unverified", methods=["POST"])
 def handle_unverified():
     """Handle case where user tries to login but is unverified"""
-    form = request.form
+    form = request.json
     # TODO: Maybe have a GN2_URI setting here?
     #       or pass the client_id here?
     return render_template(
@@ -321,7 +321,7 @@ def handle_unverified():
 @users.route("/send-verification", methods=["POST"])
 def send_verification_code():
     """Send verification code email."""
-    form = request.form
+    form = request.json
     with (db.connection(current_app.config["AUTH_DB"]) as conn,
           db.cursor(conn) as cursor):
         user = user_by_email(conn, form["user_email"])

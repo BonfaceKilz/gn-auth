@@ -53,7 +53,7 @@ def list_resource_categories() -> Response:
 def create_resource() -> Response:
     """Create a new resource"""
     with require_oauth.acquire("profile group resource") as the_token:
-        form = request.form
+        form = request.json
         resource_name = form.get("resource_name")
         resource_category_id = UUID(form.get("resource_category"))
         db_uri = app.config["AUTH_DB"]
@@ -126,7 +126,7 @@ def view_resource_data(resource_id: UUID) -> Response:
 def link_data():
     """Link group data to a specific resource."""
     try:
-        form = request.form
+        form = request.json
         assert "resource_id" in form, "Resource ID not provided."
         assert "data_link_id" in form, "Data Link ID not provided."
         assert "dataset_type" in form, "Dataset type not specified"
@@ -150,7 +150,7 @@ def link_data():
 def unlink_data():
     """Unlink data bound to a specific resource."""
     try:
-        form = request.form
+        form = request.json
         assert "resource_id" in form, "Resource ID not provided."
         assert "data_link_id" in form, "Data Link ID not provided."
 
@@ -239,7 +239,7 @@ def assign_role_to_user(resource_id: UUID) -> Response:
     """Assign a role on the specified resource to a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
-            form = request.form
+            form = request.json
             group_role_id = form.get("group_role_id", "")
             user_email = form.get("user_email", "")
             assert bool(group_role_id), "The role must be provided."
@@ -264,7 +264,7 @@ def unassign_role_to_user(resource_id: UUID) -> Response:
     """Unassign a role on the specified resource from a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
-            form = request.form
+            form = request.json
             group_role_id = form.get("group_role_id", "")
             user_id = form.get("user_id", "")
             assert bool(group_role_id), "The role must be provided."

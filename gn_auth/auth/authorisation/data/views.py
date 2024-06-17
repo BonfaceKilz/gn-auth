@@ -186,16 +186,16 @@ def __search_mrna__():
 def __request_key__(key: str, default: Any = ""):
     if bool(request.json):
         return request.json.get(#type: ignore[union-attr]
-            key, request.args.get(key, request.form.get(key, default)))
-    return request.args.get(key, request.form.get(key, default))
+            key, request.args.get(key, request.json.get(key, default)))
+    return request.args.get(key, request.json.get(key, default))
 
 def __request_key_list__(key: str, default: tuple[Any, ...] = tuple()):
     if bool(request.json):
         return (request.json.get(key,[])#type: ignore[union-attr]
-                or request.args.getlist(key) or request.form.getlist(key)
+                or request.args.getlist(key) or request.json.getlist(key)
                 or list(default))
     return (request.args.getlist(key)
-            or request.form.getlist(key) or list(default))
+            or request.json.getlist(key) or list(default))
 
 def __search_genotypes__():
     query = __request_key__("query", "")

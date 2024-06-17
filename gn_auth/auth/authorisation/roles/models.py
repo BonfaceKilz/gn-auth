@@ -137,7 +137,7 @@ def user_resource_roles(
         conn: db.DbConnection,
         user: User,
         resource: Resource
-) -> tuple[Role]:
+) -> tuple[Role, ...]:
     """Retrieve all roles assigned to a user for a particular resource."""
     with db.cursor(conn) as cursor:
         cursor.execute(

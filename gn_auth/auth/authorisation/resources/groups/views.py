@@ -7,13 +7,14 @@ from functools import partial
 from dataclasses import asdict
 
 from MySQLdb.cursors import DictCursor
-from flask import request, jsonify, Response, Blueprint, current_app
+from flask import jsonify, Response, Blueprint, current_app
+
+from gn_auth.auth.requests import request_json
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db import mariadb as gn3db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
-from gn_auth.auth.authorisation.checks import authorised_p
 from gn_auth.auth.authorisation.privileges import privileges_by_ids
 from gn_auth.auth.errors import InvalidData, NotFoundError, AuthorisationError
 
@@ -26,7 +27,7 @@ from .models import (
     join_requests, group_role_by_id, GroupCreationError,
     accept_reject_join_request, group_users as _group_users,
     create_group as _create_group, add_privilege_to_group_role,
-    delete_privilege_from_group_role, create_group_role as _create_group_role)
+    delete_privilege_from_group_role)
 
 groups = Blueprint("groups", __name__)
 
@@ -45,7 +46,7 @@ def list_groups():
 def create_group():
     """Create a new group."""
     with require_oauth.acquire("profile group") as the_token:
-        group_name=request.json.get("group_name", "").strip()
+        group_name=request_json().get("group_name", "").strip()
         if not bool(group_name):
             raise GroupCreationError("Could not create the group.")
 
@@ -53,7 +54,7 @@ def create_group():
         with db.connection(db_uri) as conn:
             user = the_token.user
             new_group = _create_group(
-                conn, group_name, user, request.json.get("group_description"))
+                conn, group_name, user, request_json().get("group_description"))
             return jsonify({
                 **asdict(new_group), "group_leader": asdict(user)
             })
@@ -102,7 +103,7 @@ def request_to_join(group_id: uuid.UUID) -> Response:
             }
 
     with require_oauth.acquire("profile group") as the_token:
-        form = request.json
+        form = request_json()
         results = with_db_connection(partial(
             __request__, user=the_token.user, group_id=group_id, message=form.get(
                 "message", "I hereby request that you add me to your group.")))
@@ -121,7 +122,7 @@ def list_join_requests() -> Response:
 def accept_join_requests() -> Response:
     """Accept a join request."""
     with require_oauth.acquire("profile group") as the_token:
-        form = request.json
+        form = request_json()
         request_id = uuid.UUID(form.get("request_id"))
         return jsonify(with_db_connection(partial(
             accept_reject_join_request, request_id=request_id,
@@ -132,7 +133,7 @@ def accept_join_requests() -> Response:
 def reject_join_requests() -> Response:
     """Reject a join request."""
     with require_oauth.acquire("profile group") as the_token:
-        form = request.json
+        form = request_json()
         request_id = uuid.UUID(form.get("request_id"))
         return jsonify(with_db_connection(partial(
             accept_reject_join_request, request_id=request_id,
@@ -263,9 +264,9 @@ def unlinked_data(resource_type: str) -> Response:
 def link_data() -> Response:
     """Link selected data to specified group."""
     with require_oauth.acquire("profile group resource") as _the_token:
-        form = request.json
+        form = request_json()
         group_id = uuid.UUID(form["group_id"])
-        dataset_ids = form.getlist("dataset_ids")
+        dataset_ids = form.get("dataset_ids")
         dataset_type = form.get("dataset_type")
         if dataset_type not in ("mrna", "genotype", "phenotype"):
             raise InvalidData("Unexpected dataset type requested!")
@@ -305,7 +306,7 @@ def __add_remove_priv_to_from_role__(conn: db.DbConnection,
         raise AuthorisationError(
             "You need to be a member of a group to edit roles.")
     try:
-        privilege_id = request.json.get("privilege_id", "")
+        privilege_id = request_json().get("privilege_id", "")
         assert bool(privilege_id), "Privilege to add must be provided."
         privileges = privileges_by_ids(conn, (privilege_id,))
         if len(privileges) == 0:

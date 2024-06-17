@@ -14,6 +14,7 @@ from flask import request, jsonify, Response, Blueprint, current_app as app
 from gn_auth import jobs
 from gn_auth.commands import run_async_cmd
 
+from gn_auth.auth.requests import request_json
 from gn_auth.auth.errors import InvalidData, NotFoundError
 from gn_auth.auth.authorisation.resources.groups.models import group_by_id
 
@@ -184,18 +185,18 @@ def __search_mrna__():
         return jsonify(with_db_connection(__ungrouped__))
 
 def __request_key__(key: str, default: Any = ""):
-    if bool(request.json):
-        return request.json.get(#type: ignore[union-attr]
-            key, request.args.get(key, request.json.get(key, default)))
-    return request.args.get(key, request.json.get(key, default))
+    if bool(request_json()):
+        return request_json().get(#type: ignore[union-attr]
+            key, request.args.get(key, request_json().get(key, default)))
+    return request.args.get(key, request_json().get(key, default))
 
 def __request_key_list__(key: str, default: tuple[Any, ...] = tuple()):
-    if bool(request.json):
-        return (request.json.get(key,[])#type: ignore[union-attr]
-                or request.args.getlist(key) or request.json.getlist(key)
+    if bool(request_json()):
+        return (request_json().get(key,[])#type: ignore[union-attr]
+                or request.args.getlist(key) or request_json().get(key)
                 or list(default))
     return (request.args.getlist(key)
-            or request.json.getlist(key) or list(default))
+            or request_json().get(key) or list(default))
 
 def __search_genotypes__():
     query = __request_key__("query", "")
@@ -240,7 +241,7 @@ def __search_phenotypes__():
 @require_oauth("profile group resource")
 def search_unlinked_data():
     """Search for various unlinked data."""
-    dataset_type = request.json["dataset_type"]
+    dataset_type = request_json()["dataset_type"]
     search_fns = {
         "mrna": __search_mrna__,
         "genotype": __search_genotypes__,
@@ -281,7 +282,7 @@ def link_genotypes() -> Response:
         return link_genotype_data(conn, group_by_id(conn, group_id), datasets)
 
     return jsonify(with_db_connection(
-        partial(__link__, **__values__(request.json))))
+        partial(__link__, **__values__(request_json()))))
 
 @data.route("/link/mrna", methods=["POST"])
 def link_mrna() -> Response:
@@ -306,7 +307,7 @@ def link_mrna() -> Response:
         return link_mrna_data(conn, group_by_id(conn, group_id), datasets)
 
     return jsonify(with_db_connection(
-        partial(__link__, **__values__(request.json))))
+        partial(__link__, **__values__(request_json()))))
 
 @data.route("/link/phenotype", methods=["POST"])
 def link_phenotype() -> Response:
@@ -334,4 +335,4 @@ def link_phenotype() -> Response:
                 conn, gn3conn, group_by_id(conn, group_id), traits)
 
         return jsonify(with_db_connection(
-            partial(__link__, **__values__(request.json))))
+            partial(__link__, **__values__(request_json()))))

@@ -14,6 +14,8 @@ from authlib.integrations.flask_oauth2.errors import _HTTPException
 from flask import (make_response, request, jsonify, Response,
                    Blueprint, current_app as app)
 
+from gn_auth.auth.requests import request_json
+
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
@@ -61,7 +63,7 @@ def list_resource_categories() -> Response:
 def create_resource() -> Response:
     """Create a new resource"""
     with require_oauth.acquire("profile group resource") as the_token:
-        form = request.json
+        form = request_json()
         resource_name = form.get("resource_name")
         resource_category_id = UUID(form.get("resource_category"))
         db_uri = app.config["AUTH_DB"]
@@ -134,7 +136,7 @@ def view_resource_data(resource_id: UUID) -> Response:
 def link_data():
     """Link group data to a specific resource."""
     try:
-        form = request.json
+        form = request_json()
         assert "resource_id" in form, "Resource ID not provided."
         assert "data_link_id" in form, "Data Link ID not provided."
         assert "dataset_type" in form, "Dataset type not specified"
@@ -158,7 +160,7 @@ def link_data():
 def unlink_data():
     """Unlink data bound to a specific resource."""
     try:
-        form = request.json
+        form = request_json()
         assert "resource_id" in form, "Resource ID not provided."
         assert "data_link_id" in form, "Data Link ID not provided."
 
@@ -247,7 +249,7 @@ def assign_role_to_user(resource_id: UUID) -> Response:
     """Assign a role on the specified resource to a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
-            form = request.json
+            form = request_json()
             group_role_id = form.get("group_role_id", "")
             user_email = form.get("user_email", "")
             assert bool(group_role_id), "The role must be provided."
@@ -272,7 +274,7 @@ def unassign_role_to_user(resource_id: UUID) -> Response:
     """Unassign a role on the specified resource from a user."""
     with require_oauth.acquire("profile group resource role") as the_token:
         try:
-            form = request.json
+            form = request_json()
             group_role_id = form.get("group_role_id", "")
             user_id = form.get("user_id", "")
             assert bool(group_role_id), "The role must be provided."
@@ -399,7 +401,7 @@ def resource_roles(resource_id: UUID) -> Response:
 def resources_authorisation():
     """Get user authorisations for given resource(s):"""
     try:
-        data = request.json
+        data = request_json()
         assert (data and "resource-ids" in data)
         resource_ids = tuple(UUID(resid) for resid in data["resource-ids"])
         pubres = tuple(
@@ -546,7 +548,7 @@ def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
                 "You are not authorised to edit/update this role.")
 
         # Actually unassign the privilege from the role
-        privilege_id = request.json.get("privilege_id")
+        privilege_id = request_json().get("privilege_id")
         if not privilege_id:
             raise AuthorisationError(
                 "You need to provide a privilege to unassign")
@@ -583,7 +585,7 @@ def resource_role_users(resource_id: UUID, role_id: UUID):
 @require_oauth("profile group resource")
 def create_resource_role(resource_id: UUID):
     """Create a role to act upon a specific resource."""
-    role_name = request.json.get("role_name", "").strip()
+    role_name = request_json().get("role_name", "").strip()
     if not bool(role_name):
         raise BadRequest("You must provide the name for the new role.")
 
@@ -594,7 +596,7 @@ def create_resource_role(resource_id: UUID):
         if not bool(resource):
             raise BadRequest("No resource with that ID exists.")
 
-        privileges = privileges_by_ids(conn, request.json.get("privileges", []))
+        privileges = privileges_by_ids(conn, request_json().get("privileges", []))
         if len(privileges) == 0:
             raise BadRequest(
                 "You must provide at least one privilege for the new role.")

@@ -8,8 +8,9 @@ import time
 from dataclasses import asdict
 from functools import reduce
 
-from authlib.integrations.flask_oauth2.errors import _HTTPException
+from werkzeug.exceptions import BadRequest
 from authlib.jose import jwt
+from authlib.integrations.flask_oauth2.errors import _HTTPException
 from flask import (make_response, request, jsonify, Response,
                    Blueprint, current_app as app)
 
@@ -17,7 +18,9 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
 from gn_auth.auth.authorisation.roles import Role
+from gn_auth.auth.authorisation.roles.models import create_role
 from gn_auth.auth.authorisation.privileges import Privilege
+from gn_auth.auth.authorisation.privileges.models import privileges_by_ids
 from gn_auth.auth.errors import InvalidData, InconsistencyError, AuthorisationError
 from gn_auth.auth.authorisation.roles.models import (
     role_by_id,
@@ -570,3 +573,37 @@ def resource_role_users(resource_id: UUID, role_id: UUID):
         results = cursor.fetchall() or []
 
     return jsonify(tuple(User.from_sqlite3_row(row) for row in results)), 200
+
+
+@resources.route("/<uuid:resource_id>/roles/create", methods=["POST"])
+@require_oauth("profile group resource")
+def create_resource_role(resource_id: UUID):
+    """Create a role to act upon a specific resource."""
+    role_name = request.json.get("role_name", "").strip()
+    if not bool(role_name):
+        raise BadRequest("You must provide the name for the new role.")
+
+    with (require_oauth.acquire("profile group resource") as _token,
+          db.connection(app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        resource = resource_by_id(conn, _token.user, resource_id)
+        if not bool(resource):
+            raise BadRequest("No resource with that ID exists.")
+
+        privileges = privileges_by_ids(conn, request.json.get("privileges", []))
+        if len(privileges) == 0:
+            raise BadRequest(
+                "You must provide at least one privilege for the new role.")
+        role = create_role(cursor,
+                           f"{resource.resource_name}::{role_name}",
+                           privileges)
+        cursor.execute(
+            "INSERT INTO resource_roles(resource_id, role_created_by, role_id) "
+            "VALUES (:resource_id, :user_id, :role_id)",
+            {
+                "resource_id": str(resource_id),
+                "user_id": str(_token.user.user_id),
+                "role_id": str(role.role_id)
+            })
+
+    return jsonify(asdict(role))

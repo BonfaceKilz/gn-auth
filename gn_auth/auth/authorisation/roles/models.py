@@ -54,11 +54,14 @@ def db_rows_to_roles(rows) -> tuple[Role, ...]:
                  if bool(rows) else [])
 
 @authorised_p(
-    privileges = ("group:role:create-role",),
+    privileges = ("resource:role:create-role",),
     error_description="Could not create role")
 def create_role(
-        cursor: db.DbCursor, role_name: str,
-        privileges: Iterable[Privilege]) -> Role:
+        cursor: db.DbCursor,
+        role_name: str,
+        privileges: Iterable[Privilege],
+        user_editable: bool=True
+) -> Role:
     """
     Create a new generic role.
 
@@ -71,7 +74,7 @@ def create_role(
 
     RETURNS: An immutable `gn3.auth.authorisation.roles.Role` object
     """
-    role = Role(uuid4(), role_name, True, tuple(privileges))
+    role = Role(uuid4(), role_name, user_editable, tuple(privileges))
 
     cursor.execute(
         "INSERT INTO roles(role_id, role_name, user_editable) VALUES (?, ?, ?)",

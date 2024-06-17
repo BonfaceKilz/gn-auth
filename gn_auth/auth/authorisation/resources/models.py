@@ -36,22 +36,8 @@ from .errors import MissingGroupError
 
 def __assign_resource_owner_role__(cursor, resource, user):
     """Assign `user` the 'Resource Owner' role for `resource`."""
-    cursor.execute(
-        "SELECT rr.* FROM resource_roles AS rr INNER JOIN roles AS r "
-        "ON rr.role_id=r.role_id WHERE r.role_name='resource-owner' "
-        "AND rr.resource_id=?",
-        (str(resource.resource_id),))
+    cursor.execute("SELECT * FROM roles WHERE role_name='resource-owner'")
     role = cursor.fetchone()
-    if not role:
-        cursor.execute("SELECT * FROM roles WHERE role_name='resource-owner'")
-        role = cursor.fetchone()
-        cursor.execute(
-            "INSERT INTO resource_roles(resource_id, role_created_by, role_id) "
-            "VALUES (:resource_id, :user_id, :role_id)",
-            {"resource_id": str(resource.resource_id),
-             "user_id": str(user.user_id),
-             "role_id": role["role_id"]})
-
     cursor.execute(
         "INSERT INTO user_roles "
         "VALUES (:user_id, :role_id, :resource_id) "

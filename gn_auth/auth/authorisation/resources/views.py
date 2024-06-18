@@ -553,9 +553,10 @@ def unassign_resource_role_privilege(resource_id: UUID, role_id: UUID):
             raise AuthorisationError(
                 "You need to provide a privilege to unassign")
 
-        delete_privilege_from_resource_role(cursor,
-                                            _role,
-                                            privilege_by_id(conn, privilege_id))
+        delete_privilege_from_resource_role(
+            cursor,
+            _role,# type: ignore[arg-type]
+            privilege_by_id(conn, privilege_id))# type: ignore[arg-type]
 
         return jsonify({
             "status": "Success",

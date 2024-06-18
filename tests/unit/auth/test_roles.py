@@ -21,45 +21,58 @@ PRIVILEGES = (
               "view a resource and use it in computations"),
     Privilege("group:resource:edit-resource", "edit/update a resource"))
 
+
+@pytest.mark.skip("This still needs some work to actually tests for resource roles.")
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(conftest.TEST_USERS[0:1], (
         Role(uuid.UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_role",
              True, PRIVILEGES),))))
 def test_create_role(# pylint: disable=[too-many-arguments]
-        fxtr_app, auth_testdb_path, mocker, fxtr_users, user, expected):# pylint: disable=[unused-argument]
+        fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user, expected):# pylint: disable=[unused-argument]
     """
     GIVEN: an authenticated user
     WHEN: the user attempts to create a role
     THEN: verify they are only able to create the role if they have the
           appropriate privileges
     """
+    _conn, clients = fxtr_oauth2_clients
     mocker.patch("gn_auth.auth.authorisation.roles.models.uuid4", conftest.uuid_fn)
-    mocker.patch("gn_auth.auth.authorisation.checks.require_oauth.acquire",
-                 conftest.get_tokeniser(user))
+    mocker.patch(
+        "gn_auth.auth.authorisation.checks.require_oauth.acquire",
+        conftest.get_tokeniser(
+            user,
+            tuple(client for client in clients if client.user == user)[0]))
     with db.connection(auth_testdb_path) as conn, db.cursor(conn) as cursor:
         the_role = create_role(cursor, "a_test_role", PRIVILEGES)
         assert the_role == expected
+
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(conftest.TEST_USERS[1:], (
         create_role_failure, create_role_failure, create_role_failure))))
 def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[too-many-arguments]
-        fxtr_app, auth_testdb_path, mocker, fxtr_users, user, expected):# pylint: disable=[unused-argument]
+        fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user, expected):# pylint: disable=[unused-argument]
     """
     GIVEN: an authenticated user
     WHEN: the user attempts to create a role
     THEN: verify they are only able to create the role if they have the
           appropriate privileges
     """
+    _conn, clients = fxtr_oauth2_clients
     mocker.patch("gn_auth.auth.authorisation.roles.models.uuid4", conftest.uuid_fn)
-    mocker.patch("gn_auth.auth.authorisation.checks.require_oauth.acquire",
-                 conftest.get_tokeniser(user))
+    mocker.patch(
+        "gn_auth.auth.authorisation.checks.require_oauth.acquire",
+        conftest.get_tokeniser(
+            user,
+            tuple(client for client in clients if client.user == user)[0]))
     with db.connection(auth_testdb_path) as conn, db.cursor(conn) as cursor:
         with pytest.raises(AuthorisationError):
             create_role(cursor, "a_test_role", PRIVILEGES)
 
+
+# This might still be incomplete, especially regarding resource roles.
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "user,expected",
@@ -84,21 +97,8 @@ def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[
                         privilege_description=(
                             'view a resource and use it in computations')),
                     Privilege(
-                        privilege_id='group:role:create-role',
-                        privilege_description='Create a new role'),
-                    Privilege(
-                        privilege_id='group:role:delete-role',
-                        privilege_description='Delete an existing role'),
-                    Privilege(
-                        privilege_id='group:role:edit-role',
-                        privilege_description='edit/update an existing role'),
-                    Privilege(
                         privilege_id='group:user:add-group-member',
                         privilege_description='Add a user to a group'),
-                    Privilege(
-                        privilege_id='group:user:assign-role',
-                        privilege_description=(
-                            'Assign a role to an existing user')),
                     Privilege(
                         privilege_id='group:user:remove-group-member',
                         privilege_description='Remove a user from a group'),

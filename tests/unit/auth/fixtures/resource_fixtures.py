@@ -3,6 +3,7 @@ import pytest
 
 from gn_auth.auth.db import sqlite3 as db
 
+from .role_fixtures import RESOURCE_EDITOR_ROLE, RESOURCE_READER_ROLE
 from .group_fixtures import (
     TEST_RESOURCES,
     TEST_GROUP_01,
@@ -43,3 +44,33 @@ def fxtr_resources(fxtr_group):# pylint: disable=[redefined-outer-name]
         cursor.executemany("DELETE FROM resources WHERE resource_id=?",
                            ((str(res.resource_id),)
          for res in TEST_RESOURCES))
+
+
+@pytest.fixture(scope="function")
+def fxtr_resource_roles(fxtr_group, fxtr_resources, fxtr_roles):# pylint: disable=[redefined-outer-name,unused-argument]
+    """Link roles to resources."""
+    resource_roles = ({
+        "resource_id": str(TEST_RESOURCES_GROUP_01[0].resource_id),
+        "role_created_by": "ecb52977-3004-469e-9428-2a1856725c7f",
+        "role_id": str(RESOURCE_EDITOR_ROLE.role_id)
+    },{
+        "resource_id": str(TEST_RESOURCES_GROUP_01[0].resource_id),
+        "role_created_by": "ecb52977-3004-469e-9428-2a1856725c7f",
+        "role_id": str(RESOURCE_READER_ROLE.role_id)
+    })
+    conn, groups = fxtr_group
+    with db.cursor(conn) as cursor:
+        cursor.executemany(
+            "INSERT INTO resource_roles(resource_id, role_created_by, role_id) "
+            "VALUES (:resource_id, :role_created_by, :role_id)",
+            resource_roles)
+
+    yield conn, groups, resource_roles
+
+    with db.cursor(conn) as cursor:
+        cursor.executemany(
+            ("DELETE FROM resource_roles "
+             "WHERE resource_id=:resource_id "
+             "AND role_created_by=:role_created_by "
+             "AND role_id=:role_id"),
+            resource_roles)

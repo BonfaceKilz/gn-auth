@@ -4,10 +4,10 @@ import uuid
 import pytest
 
 from gn_auth.auth.db import sqlite3 as db
-from gn_auth.auth.authorisation.resources.groups import Group, GroupRole
+from gn_auth.auth.authorisation.resources.groups import Group
 from gn_auth.auth.authorisation.resources import Resource, ResourceCategory
 
-from .role_fixtures import RESOURCE_EDITOR_ROLE, RESOURCE_READER_ROLE
+from .role_fixtures import RESOURCE_EDITOR_ROLE
 
 TEST_GROUP_01 = Group(uuid.UUID("9988c21d-f02f-4d45-8966-22c968ac2fbf"),
                       "TheTestGroup", {})
@@ -135,38 +135,13 @@ def fxtr_users_in_group(fxtr_group, fxtr_users):# pylint: disable=[redefined-out
             "DELETE FROM group_users WHERE group_id=? AND user_id=?",
             query_params)
 
-@pytest.fixture(scope="function")
-def fxtr_group_roles(fxtr_group, fxtr_roles):# pylint: disable=[redefined-outer-name,unused-argument]
-    """Link roles to group"""
-    group_roles = (
-        GroupRole(uuid.UUID("9c25efb2-b477-4918-a95c-9914770cbf4d"),
-                  TEST_GROUP_01, RESOURCE_EDITOR_ROLE),
-        GroupRole(uuid.UUID("82aed039-fe2f-408c-ab1e-81cd1ba96630"),
-                  TEST_GROUP_02, RESOURCE_READER_ROLE))
-    conn, groups = fxtr_group
-    with db.cursor(conn) as cursor:
-        cursor.executemany(
-            "INSERT INTO group_roles VALUES (?, ?, ?)",
-            ((str(role.group_role_id), str(role.group.group_id),
-              str(role.role.role_id))
-             for role in group_roles))
-
-    yield conn, groups, group_roles
-
-    with db.cursor(conn) as cursor:
-        cursor.executemany(
-            ("DELETE FROM group_roles "
-             "WHERE group_role_id=? AND group_id=? AND role_id=?"),
-            ((str(role.group_role_id), str(role.group.group_id),
-              str(role.role.role_id))
-             for role in group_roles))
 
 @pytest.fixture(scope="function")
-def fxtr_group_user_roles(fxtr_resources, fxtr_group_roles, fxtr_users_in_group):#pylint: disable=[redefined-outer-name,unused-argument]
+def fxtr_group_user_roles(fxtr_users_in_group, fxtr_resources, fxtr_resource_roles):#pylint: disable=[redefined-outer-name,unused-argument]
     """Assign roles to users."""
-    conn, _groups, group_roles = fxtr_group_roles
-    _conn, group_resources = fxtr_resources
     _conn, _group, group_users = fxtr_users_in_group
+    _conn, group_resources = fxtr_resources
+    conn, _groups, resource_roles = fxtr_resource_roles
     users = tuple(user for user in group_users if user.email
                   not in ("unaff@iliated.user", "group@lead.er"))
     users_roles_resources = (
@@ -183,7 +158,7 @@ def fxtr_group_user_roles(fxtr_resources, fxtr_group_roles, fxtr_users_in_group)
              "VALUES (:user_id, :role_id, :resource_id)"),
             params)
 
-    yield conn, group_users, group_roles, group_resources
+    yield conn, group_users, resource_roles, group_resources
 
     with db.cursor(conn) as cursor:
         cursor.executemany(

@@ -30,11 +30,15 @@ create_resource_failure = {
         (Resource(
             uuid.UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"),
             "test_resource", resource_category, False),))))
-def test_create_resource(mocker, fxtr_users_in_group, user, expected):
+def test_create_resource(mocker, fxtr_users_in_group, fxtr_oauth2_clients, user, expected):
     """Test that resource creation works as expected."""
     mocker.patch("gn_auth.auth.authorisation.resources.models.uuid4", conftest.uuid_fn)
-    mocker.patch("gn_auth.auth.authorisation.checks.require_oauth.acquire",
-                 conftest.get_tokeniser(user))
+    _conn, clients = fxtr_oauth2_clients
+    mocker.patch(
+        "gn_auth.auth.authorisation.checks.require_oauth.acquire",
+        conftest.get_tokeniser(
+            user,
+            tuple(client for client in clients if client.user == user)[0]))
     conn, _group, _users = fxtr_users_in_group
     resource = create_resource(
         conn, "test_resource", resource_category, user, False)
@@ -49,9 +53,6 @@ def test_create_resource(mocker, fxtr_users_in_group, user, expected):
             "DELETE FROM resource_ownership WHERE resource_id=?",
             (str(resource.resource_id),))
         cursor.execute(
-            "DELETE FROM group_roles WHERE group_id=?",
-            (str(group.group_id),))
-        cursor.execute(
             "DELETE FROM resources WHERE resource_id=?",
             (str(resource.resource_id),))
 
@@ -63,11 +64,15 @@ def test_create_resource(mocker, fxtr_users_in_group, user, expected):
         (create_resource_failure, create_resource_failure,
          create_resource_failure))))
 def test_create_resource_raises_for_unauthorised_users(
-        mocker, fxtr_users_in_group, user, expected):
+        mocker, fxtr_users_in_group, fxtr_oauth2_clients, user, expected):
     """Test that resource creation works as expected."""
     mocker.patch("gn_auth.auth.authorisation.resources.models.uuid4", conftest.uuid_fn)
-    mocker.patch("gn_auth.auth.authorisation.checks.require_oauth.acquire",
-                 conftest.get_tokeniser(user))
+    _conn, clients = fxtr_oauth2_clients
+    mocker.patch(
+        "gn_auth.auth.authorisation.checks.require_oauth.acquire",
+        conftest.get_tokeniser(
+            user,
+            tuple(client for client in clients if client.user == user)[0]))
     conn, _group, _users = fxtr_users_in_group
     with pytest.raises(AuthorisationError):
         assert create_resource(

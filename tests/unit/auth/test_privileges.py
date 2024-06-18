@@ -25,12 +25,7 @@ PRIVILEGES = sorted(
      Privilege("group:resource:view-resource",
                "view a resource and use it in computations"),
      Privilege("group:resource:edit-resource", "edit/update a resource"),
-     Privilege("group:resource:delete-resource", "Delete a resource"),
-
-     Privilege("group:role:create-role", "Create a new role"),
-     Privilege("group:role:edit-role", "edit/update an existing role"),
-     Privilege("group:user:assign-role", "Assign a role to an existing user"),
-     Privilege("group:role:delete-role", "Delete an existing role")),
+     Privilege("group:resource:delete-resource", "Delete a resource")),
     key=sort_key_privileges)
 
 @pytest.mark.unit_test

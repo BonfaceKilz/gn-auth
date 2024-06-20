@@ -30,7 +30,14 @@ create_resource_failure = {
         (Resource(
             uuid.UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"),
             "test_resource", resource_category, False),))))
-def test_create_resource(mocker, fxtr_users_in_group, fxtr_oauth2_clients, user, expected):
+def test_create_resource(# pylint: disable=[too-many-arguments, unused-argument]
+        mocker,
+        fxtr_users_in_group,
+        fxtr_resource_user_roles,
+        fxtr_oauth2_clients,
+        user,
+        expected
+):
     """Test that resource creation works as expected."""
     mocker.patch("gn_auth.auth.authorisation.resources.models.uuid4", conftest.uuid_fn)
     _conn, clients = fxtr_oauth2_clients
@@ -114,13 +121,13 @@ def test_public_resources(fxtr_resources):
              ,
              key=sort_key_resources),
          PUBLIC_RESOURCES, PUBLIC_RESOURCES))))
-def test_user_resources(fxtr_group_user_roles, user, expected):
+def test_user_resources(fxtr_resource_user_roles, user, expected):
     """
     GIVEN: some resources in the database
     WHEN: a particular user's resources are requested
     THEN: list only the resources for which the user can access
     """
-    conn, *_others = fxtr_group_user_roles
+    conn, *_others = fxtr_resource_user_roles
     assert sorted(
         {res.resource_id: res for res in user_resources(conn, user)
          }.values(), key=sort_key_resources) == expected

@@ -6,7 +6,6 @@ from pymonad.maybe import Nothing
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.errors import AuthorisationError
-from gn_auth.auth.authentication.users import User
 from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.privileges import Privilege
 from gn_auth.auth.authorisation.resources.groups.models import (
@@ -28,15 +27,9 @@ PRIVILEGES = (
     Privilege("group:resource:edit-resource", "edit/update a resource"))
 
 @pytest.mark.unit_test
-@pytest.mark.parametrize(
-    "user,expected", tuple(zip(conftest.TEST_USERS[0:1], (
-        Group(
-            UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_group",
-            {"group_description": "A test group"}),
-        create_group_failure, create_group_failure, create_group_failure,
-        create_group_failure))))
-def test_create_group(# pylint: disable=[too-many-arguments]
-        fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user, expected):# pylint: disable=[unused-argument]
+@pytest.mark.parametrize("user", tuple(conftest.TEST_USERS[0:3]))
+def test_create_group_fails(# pylint: disable=[too-many-arguments]
+        fxtr_app, auth_testdb_path, mocker, fxtr_resource_user_roles, fxtr_oauth2_clients, user):# pylint: disable=[unused-argument]
     """
     GIVEN: an authenticated user
     WHEN: the user attempts to create a group
@@ -51,8 +44,62 @@ def test_create_group(# pylint: disable=[too-many-arguments]
             user,
             tuple(client for client in clients if client.user == user)[0]))
     with db.connection(auth_testdb_path) as conn:
-        assert create_group(
-            conn, "a_test_group", user, "A test group") == expected
+        with pytest.raises(AuthorisationError):
+            create_group(conn, "a_test_group", user, "A test group")
+
+
+def __cleanup_create_group__(conn, user, group):
+    """Cleanup creating a group..."""
+    # cleanup: This should probably go into a 'delete_group(…) function'
+    with db.cursor(conn) as cursor:
+        cursor.execute("DELETE FROM group_users WHERE group_id=? AND user_id=?",
+                       (str(group.group_id), str(user.user_id)))
+        cursor.execute("SELECT * FROM group_resources WHERE group_id=?",
+                       (str(group.group_id),))
+        grp_rsc = cursor.fetchone()
+        cursor.execute(
+            "DELETE FROM user_roles WHERE user_id=? AND resource_id=?",
+            (str(user.user_id), str(grp_rsc["resource_id"])))
+        cursor.execute("DELETE FROM group_resources WHERE group_id=?",
+                       (str(group.group_id),))
+        cursor.execute("DELETE FROM groups WHERE group_id=?",
+                       (str(group.group_id),))
+
+
+@pytest.mark.unit_test
+@pytest.mark.parametrize(
+    "user,expected",
+    ((conftest.TEST_USERS[3], Group(
+        UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_group",
+        {"group_description": "A test group"})),))
+def test_create_group_succeeds(# pylint: disable=[too-many-arguments, unused-argument]
+        fxtr_app,
+        auth_testdb_path,
+        mocker,
+        fxtr_resource_user_roles,
+        fxtr_oauth2_clients,
+        user,
+        expected
+):
+    """
+    GIVEN: an authenticated user
+    WHEN: the user attempts to create a group
+    THEN: verify they are only able to create the group if they have the
+          appropriate privileges
+    """
+    _conn, clients = fxtr_oauth2_clients
+    mocker.patch("gn_auth.auth.authorisation.resources.groups.models.uuid4", conftest.uuid_fn)
+    mocker.patch(
+        "gn_auth.auth.authorisation.checks.require_oauth.acquire",
+        conftest.get_tokeniser(
+            user,
+            tuple(client for client in clients if client.user == user)[0]))
+    with db.connection(auth_testdb_path) as conn:
+        created_group = create_group(
+            conn, "a_test_group", user, "A test group")
+        assert created_group == expected
+        __cleanup_create_group__(conn, user, created_group)
+
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize("user", conftest.TEST_USERS[1:])
@@ -140,7 +187,7 @@ def test_create_group_role_raises_exception_with_unauthorised_users(
             conn, GROUP, "ResourceEditor", PRIVILEGES) == expected
 
 @pytest.mark.unit_test
-def test_create_multiple_groups(mocker, fxtr_users, fxtr_oauth2_clients):
+def test_create_multiple_groups(mocker, fxtr_resource_user_roles, fxtr_oauth2_clients):
     """
     GIVEN: An authenticated user with appropriate authorisation
     WHEN: The user attempts to create a new group, while being a member of an
@@ -150,22 +197,23 @@ def test_create_multiple_groups(mocker, fxtr_users, fxtr_oauth2_clients):
     """
     _conn, clients = fxtr_oauth2_clients
     mocker.patch("gn_auth.auth.authorisation.resources.groups.models.uuid4", conftest.uuid_fn)
-    user = User(
-        UUID("ecb52977-3004-469e-9428-2a1856725c7f"), "group@lead.er",
-        "Group Leader")
+    user = conftest.TEST_USERS[3]
     mocker.patch(
         "gn_auth.auth.authorisation.checks.require_oauth.acquire",
         conftest.get_tokeniser(
             user,
             tuple(client for client in clients if client.user == user)[0]))
-    conn, _test_users = fxtr_users
+    conn, *_test_users = fxtr_resource_user_roles
     # First time, successfully creates the group
-    assert create_group(conn, "a_test_group", user) == Group(
+    created_group = create_group(conn, "a_test_group", user)
+    assert created_group == Group(
         UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_group",
         {})
     # subsequent attempts should fail
     with pytest.raises(AuthorisationError):
         create_group(conn, "another_test_group", user)
+
+    __cleanup_create_group__(conn, user, created_group)
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize(

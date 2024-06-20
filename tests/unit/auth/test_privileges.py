@@ -11,8 +11,7 @@ def sort_key_privileges(priv):
     return priv.privilege_id
 
 PRIVILEGES = sorted(
-    (Privilege("system:group:create-group", "Create a group"),
-     Privilege("system:group:view-group", "View the details of a group"),
+    (Privilege("system:group:view-group", "View the details of a group"),
      Privilege("system:group:edit-group", "Edit the details of a group"),
      Privilege("system:user:list", "List users in the system"),
      Privilege("system:group:delete-group", "Delete a group"),
@@ -32,7 +31,7 @@ PRIVILEGES = sorted(
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(
         conftest.TEST_USERS, (PRIVILEGES, [], [], [], []))))
-def test_user_privileges(auth_testdb_path, fxtr_users, user, expected):# pylint: disable=[unused-argument]
+def test_user_privileges(auth_testdb_path, fxtr_setup_group_leaders, user, expected):# pylint: disable=[unused-argument]
     """
     GIVEN: A user
     WHEN: An attempt is made to fetch the user's privileges

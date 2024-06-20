@@ -4,6 +4,8 @@ from uuid import UUID, uuid4
 from functools import reduce, partial
 from typing import Dict, Sequence, Optional
 
+import sqlite3
+
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.authentication.users import User
 from gn_auth.auth.db.sqlite3 import with_db_connection
@@ -47,6 +49,19 @@ def __assign_resource_owner_role__(cursor, resource, user):
             "role_id": role["role_id"],
             "resource_id": str(resource.resource_id)
         })
+
+
+def resource_from_dbrow(row: sqlite3.Row):
+    """Convert an SQLite3 resultset row into a resource."""
+    return Resource(
+        resource_id=UUID(row["resource_id"]),
+        resource_name=row["resource_name"],
+        resource_category=ResourceCategory(
+            UUID(row["resource_category_id"]),
+            row["resource_category_key"],
+            row["resource_category_description"]),
+        public=bool(int(row["public"])))
+
 
 @authorised_p(("group:resource:create-resource",),
               error_description="Insufficient privileges to create a resource",
@@ -135,32 +150,19 @@ def group_leader_resources(
 
 def user_resources(conn: db.DbConnection, user: User) -> Sequence[Resource]:
     """List the resources available to the user"""
-    categories = { # Repeated in `public_resources` function
-        cat.resource_category_id: cat for cat in resource_categories(conn)
-    }
     with db.cursor(conn) as cursor:
-        def __all_resources__(group) -> Sequence[Resource]:
-            gl_resources = group_leader_resources(conn, user, group, categories)
+        cursor.execute(
+            ("SELECT r.*, rc.resource_category_key, "
+             "rc.resource_category_description  FROM user_roles AS ur "
+             "INNER JOIN resources AS r ON ur.resource_id=r.resource_id "
+             "INNER JOIN resource_categories AS rc "
+             "ON r.resource_category_id=rc.resource_category_id "
+             "WHERE ur.user_id=?"),
+            (str(user.user_id),))
+        rows = cursor.fetchall() or []
 
-            cursor.execute(
-                ("SELECT resources.* FROM user_roles LEFT JOIN resources "
-                 "ON user_roles.resource_id=resources.resource_id "
-                 "WHERE user_roles.user_id=?"),
-                (str(user.user_id),))
-            rows = cursor.fetchall()
-            private_res = tuple(
-                Resource(UUID(row[0]), row[1], categories[UUID(row[2])],
-                         bool(row[3]))
-                for row in rows)
-            return tuple({
-                res.resource_id: res
-                for res in
-                (private_res + gl_resources + public_resources(conn))# type: ignore[operator]
-            }.values())
+    return tuple(resource_from_dbrow(row) for row in rows)
 
-        # Fix the typing here
-        return user_group(conn, user).map(__all_resources__).maybe(# type: ignore[arg-type,misc]
-            public_resources(conn), lambda res: res)# type: ignore[arg-type,return-value]
 
 def resource_data(conn, resource, offset: int = 0, limit: Optional[int] = None) -> tuple[dict, ...]:
     """

@@ -1,5 +1,5 @@
 """Test functions dealing with group management."""
-import uuid
+from uuid import UUID
 
 import pytest
 
@@ -22,14 +22,22 @@ PRIVILEGES = (
     Privilege("group:resource:edit-resource", "edit/update a resource"))
 
 
-@pytest.mark.skip("This still needs some work to actually tests for resource roles.")
+@pytest.mark.skip(
+    "This needs to be replaced by tests for creation of resource roles.")
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(conftest.TEST_USERS[0:1], (
-        Role(uuid.UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_role",
+        Role(UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_role",
              True, PRIVILEGES),))))
-def test_create_role(# pylint: disable=[too-many-arguments]
-        fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user, expected):# pylint: disable=[unused-argument]
+def test_create_role(# pylint: disable=[too-many-arguments, unused-argument]
+        fxtr_app,
+        auth_testdb_path,
+        mocker,
+        fxtr_users,
+        fxtr_oauth2_clients,
+        user,
+        expected
+):
     """
     GIVEN: an authenticated user
     WHEN: the user attempts to create a role
@@ -52,8 +60,15 @@ def test_create_role(# pylint: disable=[too-many-arguments]
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(conftest.TEST_USERS[1:], (
         create_role_failure, create_role_failure, create_role_failure))))
-def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[too-many-arguments]
-        fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user, expected):# pylint: disable=[unused-argument]
+def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[too-many-arguments, unused-argument]
+        fxtr_app,
+        auth_testdb_path,
+        mocker,
+        fxtr_users,
+        fxtr_oauth2_clients,
+        user,
+        expected
+):
     """
     GIVEN: an authenticated user
     WHEN: the user attempts to create a role
@@ -77,80 +92,247 @@ def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[
 @pytest.mark.parametrize(
     "user,expected",
     (zip(TEST_USERS,
-         (({"resource_id": uuid.UUID("38d1807d-105f-44a7-8327-7e2d973b6d8d"),
-            "user_id": uuid.UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+         (({"resource_id": UUID("2130aec0-fefd-434d-92fd-9ca342348b2d"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
             "roles": (Role(
-                role_id=uuid.UUID('a0e67630-d502-4b9f-b23f-6805d0f30e30'),
-                role_name='group-leader', user_editable=False,
-                privileges=(
-                    Privilege(
-                        privilege_id='group:resource:create-resource',
-                        privilege_description='Create a resource object'),
-                    Privilege(
-                        privilege_id='group:resource:delete-resource',
-                        privilege_description='Delete a resource'),
-                    Privilege(
-                        privilege_id='group:resource:edit-resource',
-                        privilege_description='edit/update a resource'),
-                    Privilege(
-                        privilege_id='group:resource:view-resource',
-                        privilege_description=(
-                            'view a resource and use it in computations')),
-                    Privilege(
-                        privilege_id='group:user:add-group-member',
-                        privilege_description='Add a user to a group'),
-                    Privilege(
-                        privilege_id='group:user:remove-group-member',
-                        privilege_description='Remove a user from a group'),
-                    Privilege(
-                        privilege_id='system:group:delete-group',
-                        privilege_description='Delete a group'),
-                    Privilege(
-                        privilege_id='system:group:edit-group',
-                        privilege_description='Edit the details of a group'),
-                    Privilege(
-                        privilege_id='system:group:transfer-group-leader',
-                        privilege_description=(
-                            'Transfer leadership of the group to some other '
-                            'member')),
-                    Privilege(
-                        privilege_id='system:group:view-group',
-                        privilege_description='View the details of a group'),
-                    Privilege(
-                        privilege_id='system:user:list',
-                        privilege_description='List users in the system'))),)
-            },
-           {
-               "resource_id": uuid.UUID("0248b289-b277-4eaa-8c94-88a434d14b6e"),
-               "user_id": uuid.UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
-               "roles": (Role(
-                   role_id=uuid.UUID("ade7e6b0-ba9c-4b51-87d0-2af7fe39a347"),
-                   role_name="group-creator",
-                   user_editable=False,
-                   privileges=(
-                       Privilege(
-                           privilege_id="system:group:create-group",
-                           privilege_description="Create a group"),)),)}),
-          ({"resource_id": uuid.UUID("2130aec0-fefd-434d-92fd-9ca342348b2d"),
-            "user_id": uuid.UUID("21351b66-8aad-475b-84ac-53ce528451e3"),
-            "roles": (Role(
-                role_id=uuid.UUID('89819f84-6346-488b-8955-86062e9eedb7'),
-                role_name='resource_editor',
+                role_id=UUID("89819f84-6346-488b-8955-86062e9eedb7"),
+                role_name="resource_editor",
                 user_editable=True,
                 privileges=(
                     Privilege(
-                        privilege_id='group:resource:edit-resource',
-                        privilege_description='edit/update a resource'),
+                        privilege_id="group:resource:edit-resource",
+                        privilege_description="edit/update a resource"),
                     Privilege(
-                        privilege_id='group:resource:view-resource',
-                        privilege_description='view a resource and use it in computations'))),)},),
-          tuple(),
-          tuple()))))
-def test_user_roles(fxtr_group_user_roles, user, expected):
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"))),)},
+           {"resource_id": UUID("26ad1668-29f5-439d-b905-84d551f85955"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+            "roles": (
+                Role(
+                    role_id=UUID("89819f84-6346-488b-8955-86062e9eedb7"),
+                    role_name="resource_editor",
+                    user_editable=True,
+                    privileges=(
+                        Privilege(
+                            privilege_id="group:resource:edit-resource",
+                            privilege_description="edit/update a resource"),
+                        Privilege(
+                            privilege_id="group:resource:view-resource",
+                            privilege_description="view a resource and use it in computations"))),
+                Role(
+                    role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                    role_name="public-view",
+                    user_editable=False,
+                    privileges=(
+                        Privilege(
+                            privilege_id="group:resource:view-resource",
+                            privilege_description=(
+                                "view a resource and use it in computations")),)))},
+           {"resource_id": UUID("e9a1184a-e8b4-49fb-b713-8d9cbeea5b83"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+            "roles": (Role(
+                role_id=UUID("89819f84-6346-488b-8955-86062e9eedb7"),
+                role_name="resource_editor",
+                user_editable=True,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:edit-resource",
+                        privilege_description="edit/update a resource"),
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"))),)},
+           {"resource_id": UUID("38d1807d-105f-44a7-8327-7e2d973b6d8d"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+            "roles": (Role(
+                role_id=UUID("a0e67630-d502-4b9f-b23f-6805d0f30e30"),
+                role_name="group-leader",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:create-resource",
+                        privilege_description="Create a resource object"),
+                    Privilege(
+                        privilege_id="group:resource:delete-resource",
+                        privilege_description="Delete a resource"),
+                    Privilege(
+                        privilege_id="group:resource:edit-resource",
+                        privilege_description="edit/update a resource"),
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),
+                    Privilege(
+                        privilege_id="group:user:add-group-member",
+                        privilege_description="Add a user to a group"),
+                    Privilege(
+                        privilege_id="group:user:remove-group-member",
+                        privilege_description="Remove a user from a group"),
+                    Privilege(
+                        privilege_id="system:group:delete-group",
+                        privilege_description="Delete a group"),
+                    Privilege(
+                        privilege_id="system:group:edit-group",
+                        privilege_description="Edit the details of a group"),
+                    Privilege(
+                        privilege_id="system:group:transfer-group-leader",
+                        privilege_description=(
+                            "Transfer leadership of the group to some other member")),
+                    Privilege(
+                        privilege_id="system:group:view-group",
+                        privilege_description="View the details of a group"),
+                    Privilege(
+                        privilege_id="system:user:list",
+                        privilege_description="List users in the system"))),)},
+           {"resource_id": UUID("0248b289-b277-4eaa-8c94-88a434d14b6e"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)},
+           {"resource_id": UUID("04ad9e09-94ea-4390-8a02-11f92999806b"),
+            "user_id": UUID("ecb52977-3004-469e-9428-2a1856725c7f"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)}),
+          ({"resource_id": UUID("2130aec0-fefd-434d-92fd-9ca342348b2d"),
+            "user_id": UUID("21351b66-8aad-475b-84ac-53ce528451e3"),
+            "roles": (Role(
+                role_id=UUID("89819f84-6346-488b-8955-86062e9eedb7"),
+                role_name="resource_editor",
+                user_editable=True,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:edit-resource",
+                        privilege_description="edit/update a resource"),
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"))),)
+            },
+           {"resource_id": UUID("0248b289-b277-4eaa-8c94-88a434d14b6e"),
+            "user_id": UUID("21351b66-8aad-475b-84ac-53ce528451e3"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            },
+           {"resource_id": UUID("04ad9e09-94ea-4390-8a02-11f92999806b"),
+            "user_id": UUID("21351b66-8aad-475b-84ac-53ce528451e3"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            },
+           {"resource_id": UUID("26ad1668-29f5-439d-b905-84d551f85955"),
+            "user_id": UUID("21351b66-8aad-475b-84ac-53ce528451e3"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            }),
+          ({"resource_id": UUID("0248b289-b277-4eaa-8c94-88a434d14b6e"),
+            "user_id": UUID("ae9c6245-0966-41a5-9a5e-20885a96bea7"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            },
+           {"resource_id": UUID("04ad9e09-94ea-4390-8a02-11f92999806b"),
+            "user_id": UUID("ae9c6245-0966-41a5-9a5e-20885a96bea7"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            },
+           {"resource_id": UUID("26ad1668-29f5-439d-b905-84d551f85955"),
+            "user_id": UUID("ae9c6245-0966-41a5-9a5e-20885a96bea7"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            }),
+          ({"resource_id": UUID("0248b289-b277-4eaa-8c94-88a434d14b6e"),
+            "user_id": UUID("9a0c7ce5-2f40-4e78-979e-bf3527a59579"),
+            "roles": (
+                Role(
+                    role_id=UUID("ade7e6b0-ba9c-4b51-87d0-2af7fe39a347"),
+                    role_name="group-creator",
+                    user_editable=False,
+                    privileges=(
+                        Privilege(
+                            privilege_id="system:group:create-group",
+                            privilege_description="Create a group"),)),
+                Role(
+                    role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                    role_name="public-view",
+                    user_editable=False,
+                    privileges=(
+                        Privilege(
+                            privilege_id="group:resource:view-resource",
+                            privilege_description="view a resource and use it in computations"),)))
+            },
+           {"resource_id": UUID("04ad9e09-94ea-4390-8a02-11f92999806b"),
+            "user_id": UUID("9a0c7ce5-2f40-4e78-979e-bf3527a59579"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description="view a resource and use it in computations"),)),)
+            },
+           {"resource_id": UUID("26ad1668-29f5-439d-b905-84d551f85955"),
+            "user_id": UUID("9a0c7ce5-2f40-4e78-979e-bf3527a59579"),
+            "roles": (Role(
+                role_id=UUID("fd88bfed-d869-4969-87f2-67c4e8446ecb"),
+                role_name="public-view",
+                user_editable=False,
+                privileges=(
+                    Privilege(
+                        privilege_id="group:resource:view-resource",
+                        privilege_description=(
+                            "view a resource and use it in computations")),)),)})))))
+def test_user_roles(
+        fxtr_resource_user_roles,
+        user,
+        expected
+):
     """
     GIVEN: an authenticated user
     WHEN: we request the user's privileges
     THEN: return **ALL** the privileges attached to the user
     """
-    conn, *_others = fxtr_group_user_roles
+    conn, *_others = fxtr_resource_user_roles
     assert user_roles(conn, user) == expected

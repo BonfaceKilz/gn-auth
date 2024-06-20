@@ -72,7 +72,7 @@ def user_membership(conn: db.DbConnection, user: User) -> Sequence[Group]:
         "WHERE group_users.user_id=?")
     with db.cursor(conn) as cursor:
         cursor.execute(query, (str(user.user_id),))
-        groups = tuple(Group(row[0], row[1], json.loads(row[2]))
+        groups = tuple(Group(row[0], row[1], json.loads(row[2] or "{}"))
                        for row in cursor.fetchall())
 
     return groups

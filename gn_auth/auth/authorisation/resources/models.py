@@ -17,7 +17,7 @@ from gn_auth.auth.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
 from .base import Resource, ResourceCategory
-from .groups.models import Group, GroupRole, user_group, is_group_leader
+from .groups.models import Group, user_group, is_group_leader
 from .mrna import (
     resource_data as mrna_resource_data,
     attach_resources_data as mrna_attach_resources_data,
@@ -293,13 +293,13 @@ def attach_resources_data(
              for category, rscs in organised.items())
             for resource in categories)
 
-@authorised_p(
-    ("group:user:assign-role",),
-    "You cannot assign roles to users for this group.",
-    oauth2_scope="profile group role resource")
+
 def assign_resource_user(
-        conn: db.DbConnection, resource: Resource, user: User,
-        role: GroupRole) -> dict:
+        conn: db.DbConnection,
+        resource: Resource,
+        user: User,
+        role: Role
+) -> dict:
     """Assign `role` to `user` for the specific `resource`."""
     with db.cursor(conn) as cursor:
         cursor.execute(
@@ -307,39 +307,36 @@ def assign_resource_user(
             "VALUES (?, ?, ?) "
             "ON CONFLICT (user_id, role_id, resource_id) "
             "DO NOTHING",
-            (str(user.user_id), str(role.role.role_id),
-             str(resource.resource_id)))
+            (str(user.user_id), str(role.role_id), str(resource.resource_id)))
         return {
             "resource": asdict(resource),
             "user": asdict(user),
             "role": asdict(role),
             "description": (
                 f"The user '{user.name}'({user.email}) was assigned the "
-                f"'{role.role.role_name}' role on resource with ID "
+                f"'{role.role_name}' role on resource with ID "
                 f"'{resource.resource_id}'.")}
 
-@authorised_p(
-    ("group:user:assign-role",),
-    "You cannot assign roles to users for this group.",
-    oauth2_scope="profile group role resource")
+
 def unassign_resource_user(
-        conn: db.DbConnection, resource: Resource, user: User,
-        role: GroupRole) -> dict:
+        conn: db.DbConnection,
+        resource: Resource,
+        user: User,
+        role: Role
+) -> dict:
     """Assign `role` to `user` for the specific `resource`."""
     with db.cursor(conn) as cursor:
         cursor.execute(
             "DELETE FROM user_roles "
             "WHERE user_id=? AND role_id=? AND resource_id=?",
-            (str(user.user_id),
-             str(role.role.role_id),
-             str(resource.resource_id)))
+            (str(user.user_id), str(role.role_id), str(resource.resource_id)))
         return {
             "resource": asdict(resource),
             "user": asdict(user),
             "role": asdict(role),
             "description": (
                 f"The user '{user.name}'({user.email}) had the "
-                f"'{role.role.role_name}' role on resource with ID "
+                f"'{role.role_name}' role on resource with ID "
                 f"'{resource.resource_id}' taken away.")}
 
 def save_resource(

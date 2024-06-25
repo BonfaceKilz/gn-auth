@@ -247,22 +247,25 @@ def resource_users(resource_id: UUID):
 @require_oauth("profile group resource role")
 def assign_role_to_user(resource_id: UUID) -> Response:
     """Assign a role on the specified resource to a user."""
-    with require_oauth.acquire("profile group resource role") as the_token:
+    with require_oauth.acquire("profile group resource role") as _token:
         try:
             form = request_json()
-            group_role_id = form.get("group_role_id", "")
+            role_id = form.get("role_id", "")
             user_email = form.get("user_email", "")
-            assert bool(group_role_id), "The role must be provided."
+            assert bool(role_id), "The role must be provided."
             assert bool(user_email), "The user email must be provided."
 
             def __assign__(conn: db.DbConnection) -> dict:
-                resource = resource_by_id(conn, the_token.user, resource_id)
+                authorised_for(
+                    conn,
+                    _token.user,
+                    ("resource:role:assign-role",),
+                    (resource_id,))
+                resource = resource_by_id(conn, _token.user, resource_id)
                 user = user_by_email(conn, user_email)
                 return assign_resource_user(
                     conn, resource, user,
-                    group_role_by_id(conn,
-                                     resource_owner(conn, resource),
-                                     UUID(group_role_id)))
+                    role_by_id(conn, UUID(role_id)))
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 
@@ -272,21 +275,24 @@ def assign_role_to_user(resource_id: UUID) -> Response:
 @require_oauth("profile group resource role")
 def unassign_role_to_user(resource_id: UUID) -> Response:
     """Unassign a role on the specified resource from a user."""
-    with require_oauth.acquire("profile group resource role") as the_token:
+    with require_oauth.acquire("profile group resource role") as _token:
         try:
             form = request_json()
-            group_role_id = form.get("group_role_id", "")
+            role_id = form.get("role_id", "")
             user_id = form.get("user_id", "")
-            assert bool(group_role_id), "The role must be provided."
+            assert bool(role_id), "The role must be provided."
             assert bool(user_id), "The user id must be provided."
 
             def __assign__(conn: db.DbConnection) -> dict:
-                resource = resource_by_id(conn, the_token.user, resource_id)
+                authorised_for(
+                    conn,
+                    _token.user,
+                    ("resource:role:assign-role",),
+                    (resource_id,))
+                resource = resource_by_id(conn, _token.user, resource_id)
                 return unassign_resource_user(
                     conn, resource, user_by_id(conn, UUID(user_id)),
-                    group_role_by_id(conn,
-                                     resource_owner(conn, resource),
-                                     UUID(group_role_id)))
+                    role_by_id(conn, UUID(role_id)))
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 

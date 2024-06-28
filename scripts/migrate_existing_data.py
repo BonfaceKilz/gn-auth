@@ -6,6 +6,7 @@ import sys
 import json
 import time
 import random
+import logging
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -24,8 +25,10 @@ from gn_auth.auth.authorisation.resources.groups.models import (
 from gn_auth.auth.authorisation.resources.models import (
     Resource, ResourceCategory, __assign_resource_owner_role__)
 
+
 class DataNotFound(Exception):
     """Raise if no admin user exists."""
+
 
 def sys_admins(conn: authdb.DbConnection) -> tuple[User, ...]:
     """Retrieve all the existing system admins."""
@@ -37,6 +40,7 @@ def sys_admins(conn: authdb.DbConnection) -> tuple[User, ...]:
             "WHERE r.role_name='system-administrator'")
         return tuple(User.from_sqlite3_row(row) for row in cursor.fetchall())
     return tuple()
+
 
 def choose_admin(enum_admins: dict[int, User]) -> int:
     """Prompt and read user choice."""
@@ -54,6 +58,7 @@ def choose_admin(enum_admins: dict[int, User]) -> int:
                 sys.exit(0)
             print(f"\nERROR: Invalid choice '{choice}'!")
 
+
 def select_sys_admin(admins: tuple[User, ...]) -> User:
     """Pick one admin out of list."""
     if len(admins) > 0:
@@ -66,6 +71,7 @@ def select_sys_admin(admins: tuple[User, ...]) -> User:
         return chosen
     raise DataNotFound(
         "No administrator user found. Create an administrator user first.")
+
 
 def admin_group(conn: authdb.DbConnection, admin: User) -> Group:
     """Retrieve the admin's user group. If none exist, create one."""
@@ -114,6 +120,7 @@ def admin_group(conn: authdb.DbConnection, admin: User) -> Group:
             cursor, admin, UUID(grp_res["resource_id"]), "group-leader")
         return new_group
 
+
 def __resource_category_by_key__(
         cursor: authdb.DbCursor, category_key: str) -> ResourceCategory:
     """Retrieve a resource category by its ID."""
@@ -127,6 +134,7 @@ def __resource_category_by_key__(
     return ResourceCategory(UUID(row["resource_category_id"]),
                             row["resource_category_key"],
                             row["resource_category_description"])
+
 
 def __create_resources__(cursor: authdb.DbCursor) -> tuple[Resource, ...]:
     """Create default resources."""
@@ -146,6 +154,7 @@ def __create_resources__(cursor: authdb.DbCursor) -> tuple[Resource, ...]:
             "pub": 1
         } for res in resources))
     return resources
+
 
 def default_resources(conn: authdb.DbConnection, group: Group) -> tuple[
         Resource, ...]:
@@ -175,9 +184,11 @@ def default_resources(conn: authdb.DbConnection, group: Group) -> tuple[
             tuple()
         ) for row in rows)
 
+
 def delay():
     """Delay a while: anything from 2 seconds to 15 seconds."""
     time.sleep(random.choice(range(2,16)))
+
 
 def __assigned_mrna__(authconn):
     """Retrieve assigned mRNA items."""
@@ -188,6 +199,7 @@ def __assigned_mrna__(authconn):
         return tuple(
             (row["SpeciesId"], row["InbredSetId"], row["ProbeFreezeId"],
              row["ProbeSetFreezeId"]) for row in cursor.fetchall())
+
 
 def __unassigned_mrna__(bioconn, assigned):
     """Retrieve unassigned mRNA data items."""
@@ -209,6 +221,7 @@ def __unassigned_mrna__(bioconn, assigned):
     with bioconn.cursor(DictCursor) as cursor:
         cursor.execute(query, tuple(item for row in assigned for item in row))
         return (row for row in cursor.fetchall())
+
 
 def __assign_mrna__(authconn, bioconn, resource, group):
     "Assign any unassigned mRNA data to resource."
@@ -237,6 +250,7 @@ def __assign_mrna__(authconn, bioconn, resource, group):
                 unassigned)
             print(f"-> mRNA: Linked {len(unassigned)}")
             delay()
+
 
 def __assigned_geno__(authconn):
     """Retrieve assigned genotype data."""
@@ -268,6 +282,7 @@ def __unassigned_geno__(bioconn, assigned):
         cursor.execute(query, tuple(item for row in assigned for item in row))
         return (row for row in cursor.fetchall())
 
+
 def __assign_geno__(authconn, bioconn, resource, group):
     "Assign any unassigned Genotype data to resource."
     while True:
@@ -296,6 +311,7 @@ def __assign_geno__(authconn, bioconn, resource, group):
             print(f"-> Genotype: Linked {len(unassigned)}")
             delay()
 
+
 def __assigned_pheno__(authconn):
     """Retrieve assigned phenotype data."""
     with authdb.cursor(authconn) as cursor:
@@ -305,6 +321,7 @@ def __assigned_pheno__(authconn):
         return tuple((
             row["SpeciesId"], row["InbredSetId"], row["PublishFreezeId"],
             row["PublishXRefId"]) for row in cursor.fetchall())
+
 
 def __unassigned_pheno__(bioconn, assigned):
     """Retrieve all unassigned Phenotype data."""
@@ -331,6 +348,7 @@ def __unassigned_pheno__(bioconn, assigned):
     with bioconn.cursor(DictCursor) as cursor:
         cursor.execute(query, tuple(item for row in assigned for item in row))
         return (row for row in cursor.fetchall())
+
 
 def __assign_pheno__(authconn, bioconn, resource, group):
     """Assign any unassigned Phenotype data to resource."""
@@ -360,6 +378,7 @@ def __assign_pheno__(authconn, bioconn, resource, group):
             print(f"-> Phenotype: Linked {len(unassigned)}")
             delay()
 
+
 def assign_data_to_resource(
         authconn, bioconn, resource: Resource, group: Group):
     """Assign existing data, not linked to any group to the resource."""
@@ -370,6 +389,7 @@ def assign_data_to_resource(
     }
     return assigner_fns[resource.resource_category.resource_category_key](
         authconn, bioconn, resource, group)
+
 
 def entry(authdbpath, mysqldburi):
     """Entry-point for data migration."""
@@ -394,12 +414,18 @@ def entry(authdbpath, mysqldburi):
         print(dnf.args[0], file=sys.stderr)
         sys.exit(1)
 
+
 @click.command()
 @click.argument("authdbpath") # "Path to the Auth(entic|oris)ation database"
 @click.argument("mysqldburi") # "URI to the MySQL database with the biology data"
-def run(authdbpath, mysqldburi):
+@click.option("--loglevel", default="WARNING", show_default=True,
+              type=click.Choice(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]))
+def run(authdbpath, mysqldburi, loglevel):
     """Setup command-line arguments."""
+    globallogger = logging.getLogger()
+    globallogger.setLevel(loglevel)
     entry(authdbpath, mysqldburi)
+
 
 if __name__ == "__main__":
     run() # pylint: disable=[no-value-for-parameter]

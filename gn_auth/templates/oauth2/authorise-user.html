@@ -17,20 +17,18 @@
   <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
   <input type="hidden" name="client_id" value="{{client.client_id}}" />
 
-  <fieldset>
-    <legend>User Credentials</legend>
-    <fieldset class="form-group">
-      <label for="user:email" class="form-label">Email</label>
-      <input type="email" name="user:email" id="user:email" required="required"
-	     class="form-control"/>
-    </fieldset>
+  <legend>User Credentials</legend>
+  <div class="form-group">
+    <label for="user:email" class="form-label">Email</label>
+    <input type="email" name="user:email" id="user:email" required="required"
+	   class="form-control"/>
+  </div>
 
-    <fieldset class="form-group">
+  <div class="form-group">
     <label for="user:password" class="form-label">Password</label>
     <input type="password" name="user:password" id="user:password"
 	   required="required" class="form-control" />
-    </fieldset>
-  </fieldset>
+  </div>
   
   <input type="submit" value="authorise" class="btn btn-primary" />
 </form>

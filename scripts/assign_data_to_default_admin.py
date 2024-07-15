@@ -1,6 +1,6 @@
 """
-Migrate existing data that is not assigned to any group to the default sys-admin
-group for accessibility purposes.
+Assign any existing data (that is not currently assigned to any group) to the
+default sys-admin group for accessibility purposes.
 """
 import sys
 import json

@@ -210,11 +210,12 @@ def __unassigned_mrna__(bioconn, assigned):
         "FROM Species AS s INNER JOIN InbredSet AS iset "
         "ON s.SpeciesId=iset.SpeciesId INNER JOIN ProbeFreeze AS pf "
         "ON iset.InbredSetId=pf.InbredSetId INNER JOIN ProbeSetFreeze AS psf "
-        "ON pf.ProbeFreezeId=psf.ProbeFreezeId ")
+        "ON pf.ProbeFreezeId=psf.ProbeFreezeId "
+        "WHERE s.Name != 'human' ")
     if len(assigned) > 0:
         paramstr = ", ".join(["(%s, %s, %s, %s)"] * len(assigned))
         query = query + (
-            "WHERE (s.SpeciesId, iset.InbredSetId, pf.ProbeFreezeId, psf.Id) "
+            "AND (s.SpeciesId, iset.InbredSetId, pf.ProbeFreezeId, psf.Id) "
             f"NOT IN ({paramstr}) ")
 
     query = query + "LIMIT 100000"
@@ -270,11 +271,12 @@ def __unassigned_geno__(bioconn, assigned):
         "gf.ShortName AS dataset_shortname "
         "FROM Species AS s INNER JOIN InbredSet AS iset "
         "ON s.SpeciesId=iset.SpeciesId INNER JOIN GenoFreeze AS gf "
-        "ON iset.InbredSetId=gf.InbredSetId ")
+        "ON iset.InbredSetId=gf.InbredSetId "
+        "WHERE s.Name != 'human' ")
     if len(assigned) > 0:
         paramstr = ", ".join(["(%s, %s, %s)"] * len(assigned))
         query = query + (
-            "WHERE (s.SpeciesId, iset.InbredSetId, gf.Id) "
+            "AND (s.SpeciesId, iset.InbredSetId, gf.Id) "
             f"NOT IN ({paramstr}) ")
 
     query = query + "LIMIT 100000"
@@ -326,22 +328,23 @@ def __assigned_pheno__(authconn):
 def __unassigned_pheno__(bioconn, assigned):
     """Retrieve all unassigned Phenotype data."""
     query = (
-            "SELECT spc.SpeciesId, iset.InbredSetId, "
-            "pf.Id AS PublishFreezeId, pf.Name AS dataset_name, "
-            "pf.FullName AS dataset_fullname, "
-            "pf.ShortName AS dataset_shortname, pxr.Id AS PublishXRefId "
-            "FROM "
-            "Species AS spc "
-            "INNER JOIN InbredSet AS iset "
-            "ON spc.SpeciesId=iset.SpeciesId "
-            "INNER JOIN PublishFreeze AS pf "
-            "ON iset.InbredSetId=pf.InbredSetId "
-            "INNER JOIN PublishXRef AS pxr "
-            "ON pf.InbredSetId=pxr.InbredSetId ")
+        "SELECT spc.SpeciesId, iset.InbredSetId, "
+        "pf.Id AS PublishFreezeId, pf.Name AS dataset_name, "
+        "pf.FullName AS dataset_fullname, "
+        "pf.ShortName AS dataset_shortname, pxr.Id AS PublishXRefId "
+        "FROM "
+        "Species AS spc "
+        "INNER JOIN InbredSet AS iset "
+        "ON spc.SpeciesId=iset.SpeciesId "
+        "INNER JOIN PublishFreeze AS pf "
+        "ON iset.InbredSetId=pf.InbredSetId "
+        "INNER JOIN PublishXRef AS pxr "
+        "ON pf.InbredSetId=pxr.InbredSetId "
+        "WHERE spc.Name != 'human' ")
     if len(assigned) > 0:
         paramstr = ", ".join(["(%s, %s, %s, %s)"] * len(assigned))
         query = query + (
-            "WHERE (spc.SpeciesId, iset.InbredSetId, pf.Id, pxr.Id) "
+            "AND (spc.SpeciesId, iset.InbredSetId, pf.Id, pxr.Id) "
             f"NOT IN ({paramstr}) ")
 
     query = query + "LIMIT 100000"

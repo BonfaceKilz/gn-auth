@@ -7,9 +7,8 @@ import logging
 from pathlib import Path
 
 import click
-from MySQLdb.cursors import DictCursor
 from pymonad.maybe import Just, Maybe, Nothing
-from pymonad.tools import curry, monad_from_none_or_value
+from pymonad.tools import monad_from_none_or_value
 
 from gn_auth.auth.db import mariadb as biodb
 from gn_auth.auth.db import sqlite3 as authdb
@@ -50,7 +49,6 @@ def resource_owner(conn: authdb.DbConnection) -> Maybe:
                 User.from_sqlite3_row)
 
 
-
 def assign_data(authconn: authdb.DbConnection, bioconn, group: Group):
     """Do actual data assignments."""
     try:
@@ -58,10 +56,10 @@ def assign_data(authconn: authdb.DbConnection, bioconn, group: Group):
             assign_data_to_resource(authconn, bioconn, resource, group)
 
         return 1
-    except Exception as _exc:
+    except Exception as _exc:# pylint: disable=[broad-except]
         logging.error("Failed to assign some data!", exc_info=True)
         return 1
-    
+
 
 if __name__ == "__main__":
     @click.command()
@@ -86,4 +84,4 @@ if __name__ == "__main__":
         logging.error("There is no such SQLite3 database file.")
         return 1
 
-    sys.exit(run())
+    sys.exit(run()) # pylint: disable=[no-value-for-parameter]

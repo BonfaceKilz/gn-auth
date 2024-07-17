@@ -11,7 +11,8 @@ import gn_auth.auth.db.sqlite3 as authdb
 
 from gn_auth.auth.db import mariadb as biodb
 
-from scripts.migrate_existing_data import sys_admins, admin_group, select_sys_admin
+from scripts.assign_data_to_default_admin import (
+    sys_admins, admin_group, select_sys_admin)
 
 def linked_inbredsets(conn):
     """Fetch all inbredset groups that are linked to the auth system."""

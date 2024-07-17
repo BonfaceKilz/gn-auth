@@ -22,7 +22,6 @@ from gn_auth.auth.authentication.users import user_by_id, hash_password
 from gn_auth.auth.authorisation.users.admin.models import make_sys_admin
 
 from scripts import register_sys_admin as rsysadm# type: ignore[import]
-from scripts import migrate_existing_data as med# type: ignore[import]
 
 
 def dev_loggers(appl: Flask) -> None:
@@ -139,11 +138,6 @@ def assign_system_admin(user_id: uuid.UUID):
     except NotFoundError as nfe:
         print(nfe, file=sys.stderr)
         sys.exit(1)
-
-@app.cli.command()
-def make_data_public():
-    """Make existing data that is not assigned to any group publicly visible."""
-    med.entry(app.config["AUTH_DB"], app.config["SQL_URI"])
 
 @app.cli.command()
 def register_admin():

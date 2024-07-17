@@ -5,6 +5,7 @@ from functools import reduce
 from dataclasses import dataclass
 from typing import Any, Sequence, Iterable, Optional
 
+import sqlite3
 from flask import g
 from pymonad.maybe import Just, Maybe, Nothing
 
@@ -61,6 +62,13 @@ class MembershipError(AuthorisationError):
             f"User '{user.name} ({user.email})' is a member of {len(groups)} "
             f"groups ({groups_str})")
         super().__init__(f"{type(self).__name__}: {error_description}.")
+
+
+def db_row_to_group(row: sqlite3.Row) -> Group:
+    """Convert a database row into a group."""
+    return Group(UUID(row["group_id"]),
+                 row["group_name"],
+                 json.loads(row["group_metadata"]))
 
 
 def user_membership(conn: db.DbConnection, user: User) -> Sequence[Group]:

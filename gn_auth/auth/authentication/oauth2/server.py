@@ -7,14 +7,13 @@ from datetime import datetime, timedelta
 
 from pymonad.either import Left
 from flask import Flask, current_app
-from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
-from authlib.jose import jwk, jwt, JsonWebKey
+from authlib.jose import jwt, KeySet, JsonWebKey
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.jwks import (
-    newest_jwk, jwks_directory, generate_and_save_private_key)
+    list_jwks, newest_jwk, jwks_directory, generate_and_save_private_key)
 
 from .models.oauth2client import client as fetch_client
 from .models.oauth2token import OAuth2Token, save_token
@@ -32,7 +31,7 @@ from .grants.jwt_bearer_grant import JWTBearerGrant, JWTBearerTokenGenerator
 from .endpoints.revocation import RevocationEndpoint
 from .endpoints.introspection import IntrospectionEndpoint
 
-from .resource_server import require_oauth, BearerTokenValidator
+from .resource_server import require_oauth, JWTBearerTokenValidator
 
 
 def create_query_client_func() -> Callable:
@@ -164,6 +163,5 @@ def setup_oauth2_server(app: Flask) -> None:
     app.config["OAUTH2_SERVER"] = server
 
     ## Set up the token validators
-    require_oauth.register_token_validator(BearerTokenValidator())
     require_oauth.register_token_validator(
-        JWTBearerTokenValidator(app.config["SSL_PRIVATE_KEY"].get_public_key()))
+        JWTBearerTokenValidator(KeySet(list_jwks(jwks_directory(app)))))

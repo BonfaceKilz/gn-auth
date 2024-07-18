@@ -18,6 +18,7 @@ from gn_auth.auth.requests import request_json
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
+from gn_auth.auth.jwks import newest_jwk, jwks_directory
 
 from gn_auth.auth.authorisation.roles import Role
 from gn_auth.auth.authorisation.roles.models import (
@@ -491,7 +492,8 @@ def get_user_roles_on_resource(name) -> Response:
             "email": _token.user.email,
             "roles": roles,
         }
-        token = jwt.encode(jose_header, payload, app.config["SSL_PRIVATE_KEY"])
+        token = jwt.encode(
+            jose_header, payload, newest_jwk(jwks_directory(app)))
         response.headers["Authorization"] = f"Bearer {token.decode('utf-8')}"
         return response
 

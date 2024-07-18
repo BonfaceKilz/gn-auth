@@ -50,10 +50,14 @@ def create_query_client_func() -> Callable:
 
     return __query_client__
 
-def create_save_token_func(token_model: type, jwtkey: jwk) -> Callable:
+def create_save_token_func(token_model: type, app: Flask) -> Callable:
     """Create the function that saves the token."""
     def __save_token__(token, request):
-        _jwt = jwt.decode(token["access_token"], jwtkey)
+        _jwt = jwt.decode(
+            token["access_token"],
+            newest_jwk_with_rotation(
+                jwks_directory(app),
+                int(app.config["JWKS_ROTATION_AGE_DAYS"])))
         _token = token_model(
             token_id=uuid.UUID(_jwt["jti"]),
             client=request.client,
@@ -156,8 +160,7 @@ def setup_oauth2_server(app: Flask) -> None:
     server.init_app(
         app,
         query_client=create_query_client_func(),
-        save_token=create_save_token_func(
-            OAuth2Token, app.config["SSL_PRIVATE_KEY"]))
+        save_token=create_save_token_func(OAuth2Token, app))
     app.config["OAUTH2_SERVER"] = server
 
     ## Set up the token validators

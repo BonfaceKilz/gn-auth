@@ -24,7 +24,7 @@ def check_mandatory_settings(app: Flask) -> None:
     undefined = tuple(
         setting for setting in (
             "SECRET_KEY", "SQL_URI", "AUTH_DB", "AUTH_MIGRATIONS",
-            "OAUTH2_SCOPE", "SSL_PRIVATE_KEY", "CLIENTS_SSL_PUBLIC_KEYS_DIR")
+            "OAUTH2_SCOPE", "CLIENTS_SSL_PUBLIC_KEYS_DIR")
         if not ((setting in app.config) and bool(app.config[setting])))
     if len(undefined) > 0:
         raise ConfigurationError(
@@ -64,8 +64,6 @@ def parse_ssl_keys(app):
             __parse_key__(Path(key_storage_dir).joinpath(key))
             for key in os.listdir(key_storage_dir))}
 
-    app.config["SSL_PRIVATE_KEY"] = __parse_key__(
-        Path(app.config["SSL_PRIVATE_KEY"]))
 
 def create_app(
         config: Optional[dict] = None,

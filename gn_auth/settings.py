@@ -31,7 +31,6 @@ CORS_HEADERS = [
 
 # OpenSSL keys
 CLIENTS_SSL_PUBLIC_KEYS_DIR = "" # clients' public keys' directory
-SSL_PRIVATE_KEY = "" # authorisation server primary key
 JWKS_ROTATION_AGE_DAYS = 7 # Days (from creation) to keep a JWK in use.
 JWKS_DELETION_AGE_DAYS = 14 # Days (from creation) to keep a JWK around before deleting it.
 

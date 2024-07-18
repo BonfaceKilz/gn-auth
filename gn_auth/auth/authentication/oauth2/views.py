@@ -1,6 +1,7 @@
 """Endpoints for the oauth2 server"""
 import uuid
 import traceback
+from pathlib import Path
 from urllib.parse import urlparse
 
 from authlib.oauth2.rfc6749.errors import InvalidClientError
@@ -9,6 +10,7 @@ from flask import (
     flash,
     request,
     url_for,
+    jsonify,
     redirect,
     Response,
     Blueprint,
@@ -17,6 +19,7 @@ from flask import (
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
+from gn_auth.auth.jwks import jwks_directory, list_jwks
 from gn_auth.auth.errors import NotFoundError, ForbiddenAccess
 from gn_auth.auth.authentication.users import valid_login, user_by_email
 
@@ -116,3 +119,14 @@ def introspect_token() -> Response:
                 IntrospectionEndpoint.ENDPOINT_NAME)
 
     raise ForbiddenAccess("You cannot access this endpoint")
+
+
+@auth.route("/public-jwks", methods=["GET"])
+def public_jwks():
+    """Provide the JWK public keys used by this application."""
+    return jsonify({
+        "documentation": (
+            "The keys are listed in order of creation, from the oldest (first) "
+            "to the newest (last)."),
+        "jwks": tuple(key.as_dict() for key in list_jwks(jwks_directory(
+        Path(app.config["GN_AUTH_SECRETS"]).parent)))})

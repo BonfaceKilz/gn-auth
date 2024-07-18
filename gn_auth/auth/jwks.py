@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import Any, Union
 from datetime import datetime
 
+from flask import Flask
 from authlib.jose import JsonWebKey
 from pymonad.either import Left, Right, Either
 
-def jwks_directory(appsecretsdir: Path) -> Path:
+def jwks_directory(app: Flask) -> Path:
     """Compute the directory where the JWKs are stored."""
+    appsecretsdir = Path(app.config["GN_AUTH_SECRETS"]).parent
     if appsecretsdir.exists() and appsecretsdir.is_dir():
         jwksdir = Path(appsecretsdir, "jwks/")
         if not jwksdir.exists():

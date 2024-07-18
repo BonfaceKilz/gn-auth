@@ -266,7 +266,7 @@ def assign_role_to_user(resource_id: UUID) -> Response:
                 user = user_by_email(conn, user_email)
                 return assign_resource_user(
                     conn, resource, user,
-                    role_by_id(conn, UUID(role_id)))
+                    role_by_id(conn, UUID(role_id)))# type: ignore[arg-type]
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 
@@ -293,7 +293,7 @@ def unassign_role_to_user(resource_id: UUID) -> Response:
                 resource = resource_by_id(conn, _token.user, resource_id)
                 return unassign_resource_user(
                     conn, resource, user_by_id(conn, UUID(user_id)),
-                    role_by_id(conn, UUID(role_id)))
+                    role_by_id(conn, UUID(role_id)))# type: ignore[arg-type]
         except AssertionError as aserr:
             raise AuthorisationError(aserr.args[0]) from aserr
 

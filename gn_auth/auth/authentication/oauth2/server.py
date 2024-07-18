@@ -61,7 +61,7 @@ def create_save_token_func(token_model: type, jwtkey: jwk) -> Callable:
             **{
                 "refresh_token": None,
                 "revoked": False,
-                "issued_at": datetime.datetime.now(),
+                "issued_at": datetime.now(),
                 **token
             })
         with db.connection(current_app.config["AUTH_DB"]) as conn:
@@ -75,8 +75,8 @@ def create_save_token_func(token_model: type, jwtkey: jwk) -> Callable:
                     client=request.client,
                     user=request.user,
                     issued_with=uuid.UUID(_jwt["jti"]),
-                    issued_at=datetime.datetime.fromtimestamp(_jwt["iat"]),
-                    expires=datetime.datetime.fromtimestamp(
+                    issued_at=datetime.fromtimestamp(_jwt["iat"]),
+                    expires=datetime.fromtimestamp(
                         old_refresh_token.then(
                             lambda _tok: _tok.expires.timestamp()
                         ).maybe((int(_jwt["iat"]) +

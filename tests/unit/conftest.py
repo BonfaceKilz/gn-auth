@@ -8,6 +8,17 @@ import pytest
 
 from gn_auth import create_app
 
+def setup_secrets(rootdir: Path) -> Path:
+    """Setup secrets directory and file."""
+    secretsfile = Path(rootdir).joinpath("secrets/secrets.py")
+    secretsfile.parent.mkdir(exist_ok=True)
+    with open(secretsfile, "w", encoding="utf8") as outfile:
+        outfile.write(
+            'SECRET_KEY="qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk"')
+
+    return secretsfile
+
+
 @pytest.fixture(scope="session")
 def fxtr_app():
     """Fixture: setup the test app"""
@@ -22,8 +33,8 @@ def fxtr_app():
         app = create_app({
             "TESTING": True,
             "AUTH_DB": testdb,
+            "GN_AUTH_SECRETS": str(setup_secrets(testdir)),
             "OAUTH2_ACCESS_TOKEN_GENERATOR": "tests.unit.auth.test_token.gen_token",
-            "SECRET_KEY": "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk",
             "UPLOADS_DIR": testuploadsdir,
             "SSL_PRIVATE_KEY": f"{testsroot}/test-ssl-private-key.pem",
             "CLIENTS_SSL_PUBLIC_KEYS_DIR": f"{testsroot}/test-public-keys-dir"

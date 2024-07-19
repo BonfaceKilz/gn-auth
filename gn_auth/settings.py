@@ -8,6 +8,9 @@ LOGLEVEL = "WARNING"
 SECRET_KEY = ""
 GN_AUTH_SECRETS = None # Set this to path to secrets file
 
+# Session settings
+SESSION_EXPIRY_MINUTES = 10
+
 # Database settings
 SQL_URI = "mysql://webqtlout:webqtlout@localhost/db_webqtl"
 AUTH_DB = f"{os.environ.get('HOME')}/genenetwork/gn3_files/db/auth.db"

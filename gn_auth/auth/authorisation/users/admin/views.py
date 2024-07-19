@@ -62,7 +62,8 @@ _FORM_GRANT_TYPES_ = ({
 @admin.before_request
 def update_expires():
     """Update session expiration."""
-    if session.session_info() and not session.update_expiry():
+    if (session.session_info() and not session.update_expiry(
+            int(app.config.get("SESSION_EXPIRY_MINUTES", 10)))):
         flash("Session has expired. Logging out...", "alert-warning")
         session.clear_session_info()
         return redirect(url_for("oauth2.admin.login"))
@@ -96,7 +97,8 @@ def login():
                 session.update_session_info(
                     user=asdict(user),
                     expires=(
-                        datetime.now(tz=timezone.utc) + timedelta(minutes=10)))
+                        datetime.now(tz=timezone.utc) + timedelta(minutes=int(
+                            app.config.get("SESSION_EXPIRY_MINUTES", 10)))))
                 return redirect(url_for(next_uri))
             raise NotFoundError(error_message)
     except NotFoundError as _nfe:

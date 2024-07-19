@@ -47,11 +47,11 @@ def session_expired() -> bool:
         return now >= session[__SESSION_KEY__]["expires"]
     return True
 
-def update_expiry() -> bool:
+def update_expiry(minutes: int = 10) -> bool:
     """Update the session expiry and return a boolean indicating success."""
     if not session_expired():
         now = datetime.now(tz=timezone.utc)
-        session[__SESSION_KEY__]["expires"] = now + timedelta(minutes=10)
+        session[__SESSION_KEY__]["expires"] = now + timedelta(minutes=minutes)
         return True
     return False
 

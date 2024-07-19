@@ -9,59 +9,72 @@
 
 <form method="POST" action="{{url_for('oauth2.admin.register_client')}}">
 
-  <fieldset>
-    <legend>Select client scope</legend>
-
+  <legend>Select client scope</legend>
+  <div class="form-group">
     {%for scp in scope%}
-    <input name="scope[]" id="chk-{{scp}}"type="checkbox" value="{{scp}}"
-	   {%if scp=="profile"%}checked="checked"{%endif%} />
-    <label for="chk-{{scp}}">{{scp}}</label><br />
+    <div class="checkbox">
+      <label for="chk-{{scp}}">
+        <input name="scope[]" id="chk-{{scp}}"type="checkbox" value="{{scp}}"
+	       {%if scp=="profile"%}checked="checked"{%endif%} />
+        {{scp}}
+      </label>
+    </div>
     {%endfor%}
+  </div>
 
-  </fieldset>
-
-  <fieldset>
-    <legend>Basic OAuth2 client information</legend>
-
-    
-    <label for="txt-client-name">Client name</label>
-    <input name="client_name" type="text" id="txt-client-name"
+  <legend>Basic OAuth2 client information</legend>
+  <div class="form-group">
+    <label for="txt-client-name" class="form-label">Client name</label>
+    <input name="client_name"
+           type="text"
+           id="txt-client-name"
+           class="form-control"
 	   required="required" />
-    <br /><br />
+  </div>
 
-    <label for="txt-redirect-uri">Redirect URI</label>
-    <input name="redirect_uri" type="text" id="txt-redirect-uri"
+  <div class="form-group">
+    <label for="txt-redirect-uri" class="form-label">Redirect URI</label>
+    <input name="redirect_uri"
+           type="text"
+           id="txt-redirect-uri"
+           class="form-control"
 	   required="required" />
-    <br /><br />
+  </div>
 
-    <label for="txt-other-redirect-uris">
-      Other redirect URIs (Enter one URI per line)</label>
-    <br />
-    <textarea name="other_redirect_uris" id="txt-other-redirect-uris"
+  <div class="form-group">
+    <label for="txt-other-redirect-uris" class="form-label">
+      Other redirect URIs</label>
+    <div class="form-text text-muted">Enter one URI per line</div>
+    <textarea name="other_redirect_uris"
+              id="txt-other-redirect-uris"
 	      cols="80" rows="10"
+              class="form-control"
 	      title="Enter one URI per line."></textarea>
-    <br /><br />
-    <fieldset>
-      <legend>Supported grant types</legend>
-      {%for granttype in granttypes%}
-      <input name="grants[]"
-	     type="checkbox"
-	     value="{{granttype.value}}"
-	     id="chk-{{granttype.name.lower().replace(' ', '-')}}"
-	     checked="checked" />
+  </div>
+
+  <div class="form-group">
+    <legend>Supported grant types</legend>
+    {%for granttype in granttypes%}
+    <div class="checkbox">
       <label for="chk-{{granttype.name.lower().replace(' ', '-')}}">
+        <input name="grants[]"
+	       type="checkbox"
+	       value="{{granttype.value}}"
+	       id="chk-{{granttype.name.lower().replace(' ', '-')}}"
+	       checked="checked" />
         {{granttype.name}}
       </label>
-      <br /><br />
-      {%endfor%}
-    </fieldset>
-  </fieldset>
+    </div>
+    {%endfor%}
+  </div>
 
-  <fieldset>
-    <legend>User information</legend>
-
-    <p>The user to register this client for</p>
-    <select name="user" required="required">
+  <legend>User information</legend>
+  <div class="form-group">
+    <label for="select-user">The user to register this client for</label>
+    <select id="select-user"
+            name="user"
+            class="form-control"
+            required="required">
       {%for user in users%}
       <option value="{{user.user_id}}"
 	      {%if user.user_id==current_user.user_id%}
@@ -69,8 +82,8 @@
 	      {%endif%}>{{user.name}} ({{user.email}})</option>
       {%endfor%}
     </select>
-  </fieldset>
-  
-  <input type="submit" value="register client" />
+  </div>
+
+  <input type="submit" value="register client" class="btn btn-primary" />
 </form>
 {%endblock%}

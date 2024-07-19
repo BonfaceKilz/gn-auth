@@ -1,7 +1,6 @@
 """Endpoints for the oauth2 server"""
 import uuid
 import traceback
-from pathlib import Path
 from urllib.parse import urlparse
 
 from authlib.oauth2.rfc6749.errors import InvalidClientError
@@ -128,5 +127,4 @@ def public_jwks():
         "documentation": (
             "The keys are listed in order of creation, from the oldest (first) "
             "to the newest (last)."),
-        "jwks": tuple(key.as_dict() for key in list_jwks(jwks_directory(
-        Path(app.config["GN_AUTH_SECRETS"]).parent)))})
+        "jwks": tuple(key.as_dict() for key in list_jwks(jwks_directory(app)))})

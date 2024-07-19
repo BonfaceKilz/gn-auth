@@ -1,13 +1,14 @@
 """OAuth2 Client model."""
 import json
+import logging
 import datetime
-from pathlib import Path
-
 from uuid import UUID
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Sequence, Optional
 
+import requests
+from requests.exceptions import JSONDecodeError
 from authlib.jose import KeySet, JsonWebKey
 from authlib.oauth2.rfc6749 import ClientMixin
 from pymonad.maybe import Just, Maybe, Nothing
@@ -57,16 +58,30 @@ class OAuth2Client(ClientMixin):
         """
         return self.client_metadata.get("client_type", "public")
 
-    @cached_property
+
     def jwks(self) -> KeySet:
         """Return this client's KeySet."""
-        def __parse_key__(keypath: Path) -> JsonWebKey:
-            with open(keypath) as _key:# pylint: disable=[unspecified-encoding]
-                return JsonWebKey.import_key(_key.read())
+        jwksuri = self.client_metadata.get("public-jwks-uri")
+        if not bool(jwksuri):
+            logging.debug("No Public JWKs URI set for client!")
+            return KeySet([])
+        try:
+            ## IMPORTANT: This can cause a deadlock if the client is working in
+            ##            single-threaded mode, i.e. can only serve one request
+            ##            at a time.
+            return KeySet([JsonWebKey.import_key(key)
+                           for key in requests.get(jwksuri).json()["jwks"]])
+        except requests.ConnectionError as _connerr:
+            logging.debug(
+                "Could not connect to provided URI: %s", jwksuri, exc_info=True)
+        except JSONDecodeError as _jsonerr:
+            logging.debug(
+                "Could not convert response to JSON", exc_info=True)
+        except Exception as _exc:# pylint: disable=[broad-except]
+            logging.debug(
+                "Error retrieving the JWKs for the client.", exc_info=True)
+        return KeySet([])
 
-        return KeySet([
-            __parse_key__(Path(pth))
-            for pth in self.client_metadata.get("public_keys", [])])
 
     def check_endpoint_auth_method(self, method: str, endpoint: str) -> bool:
         """

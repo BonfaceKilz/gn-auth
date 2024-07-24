@@ -159,10 +159,12 @@ def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
             lambda _tok: revoke_refresh_token(conn, _tok))
         raise InvalidGrantError(_error_msg_)
 
+    def __handle_not_found__(_error_msg_):
+        raise InvalidGrantError(_error_msg_)
+
     load_refresh_token(conn, parenttoken).maybe(
-        Left("Token not found"), Right).then(
-            __check_child__).either(__revoke_and_raise_error__,
-                                    __link_to_child__)
+        Left("Token not found"), Right).either(
+            __handle_not_found__, __link_to_child__)
 
 
 def is_refresh_token_valid(token: JWTRefreshToken, client: OAuth2Client) -> bool:

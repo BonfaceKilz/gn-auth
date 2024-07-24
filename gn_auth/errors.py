@@ -18,6 +18,7 @@ def add_trace(exc: Exception, errobj: dict) -> dict:
 
 def page_not_found(exc):
     """404 handler."""
+    current_app.logger.debug(f"Page '{request.url}' was not found.", exc_info=True)
     content_type = request.content_type
     if bool(content_type) and content_type.lower() == "application/json":
         return jsonify(add_trace(exc, {
@@ -31,6 +32,7 @@ def page_not_found(exc):
 
 def handle_general_exception(exc: Exception):
     """Handle generic unhandled exceptions."""
+    current_app.logger.debug("Error occurred!", exc_info=True)
     content_type = request.content_type
     if bool(content_type) and content_type.lower() == "application/json":
         msg = ("The following exception was raised while attempting to access "
@@ -48,6 +50,7 @@ def handle_general_exception(exc: Exception):
 
 def handle_authorisation_error(exc: AuthorisationError):
     """Handle AuthorisationError if not handled anywhere else."""
+    current_app.logger.debug("Error occurred!", exc_info=True)
     current_app.logger.error(exc)
     return jsonify(add_trace(exc, {
         "error": type(exc).__name__,

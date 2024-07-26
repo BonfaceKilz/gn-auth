@@ -5,11 +5,16 @@ from flask import current_app as app
 
 from authlib.jose import jwt, KeySet, JoseError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
+from authlib.oauth2.rfc7523 import (
+    JWTBearerTokenValidator as _JWTBearerTokenValidator)
 from authlib.integrations.flask_oauth2 import ResourceProtector
 
-from gn_auth.auth.jwks import list_jwks, jwks_directory
 from gn_auth.auth.db import sqlite3 as db
-from gn_auth.auth.authentication.oauth2.models.oauth2token import token_by_access_token
+from gn_auth.auth.jwks import list_jwks, jwks_directory
+from gn_auth.auth.authentication.oauth2.models.jwt_bearer_token import (
+    JWTBearerToken)
+from gn_auth.auth.authentication.oauth2.models.oauth2token import (
+    token_by_access_token)
 
 class BearerTokenValidator(_BearerTokenValidator):
     """Extends `authlib.oauth2.rfc6750.BearerTokenValidator`"""
@@ -20,6 +25,7 @@ class BearerTokenValidator(_BearerTokenValidator):
 
 class JWTBearerTokenValidator(_JWTBearerTokenValidator):
     """Validate a token using all the keys"""
+    token_cls = JWTBearerToken
     _local_attributes = ("jwt_refresh_frequency_hours",)
 
     def __init__(self, public_key, issuer=None, realm=None, **extra_attributes):

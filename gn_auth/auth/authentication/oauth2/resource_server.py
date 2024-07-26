@@ -3,8 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 from flask import current_app as app
 
-from authlib.jose import KeySet
-from authlib.oauth2.rfc7523 import JWTBearerTokenValidator as _JWTBearerTokenValidator
+from authlib.jose import jwt, KeySet, JoseError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 from authlib.integrations.flask_oauth2 import ResourceProtector
 
@@ -46,7 +45,19 @@ class JWTBearerTokenValidator(_JWTBearerTokenValidator):
 
     def authenticate_token(self, token_string: str):
         self.__refresh_jwks__()
-        return super().authenticate_token(token_string)
+        for key in self.public_key.keys:
+            try:
+                claims = jwt.decode(
+                    token_string, key,
+                    claims_options=self.claims_options,
+                    claims_cls=self.token_cls,
+                )
+                claims.validate()
+                return claims
+            except JoseError as error:
+                app.logger.debug('Authenticate token failed. %r', error)
+
+        return None
 
 
 require_oauth = ResourceProtector()

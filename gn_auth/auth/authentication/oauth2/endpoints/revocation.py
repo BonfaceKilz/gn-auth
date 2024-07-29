@@ -12,6 +12,7 @@ from .utilities import query_token as _query_token
 class RevocationEndpoint(_RevocationEndpoint):
     """Revoke the tokens"""
     ENDPOINT_NAME = "revoke"
+    CLIENT_AUTH_METHODS = ['client_secret_post']
     def query_token(self, token_string: str, token_type_hint: str):
         """Query the token."""
         return _query_token(self, token_string, token_type_hint)

@@ -92,12 +92,9 @@ class OAuth2Client(ClientMixin):
         * client_secret_post: Client uses the HTTP POST parameters
         * client_secret_basic: Client uses HTTP Basic
         """
-        if endpoint == "token":
+        if endpoint in ("token", "revoke", "introspection"):
             return (method in self.token_endpoint_auth_method
                     and method == "client_secret_post")
-        if endpoint in ("introspection", "revoke"):
-            return (method in self.token_endpoint_auth_method
-                    and method == "client_secret_basic")
         return False
 
     @cached_property

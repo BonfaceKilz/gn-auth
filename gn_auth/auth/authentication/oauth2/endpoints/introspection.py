@@ -20,6 +20,7 @@ def get_token_user_sub(token: OAuth2Token) -> str:# pylint: disable=[unused-argu
 
 class IntrospectionEndpoint(_IntrospectionEndpoint):
     """Introspect token."""
+    CLIENT_AUTH_METHODS = ['client_secret_post']
     def query_token(self, token_string: str, token_type_hint: str):
         """Query the token."""
         return _query_token(self, token_string, token_type_hint)

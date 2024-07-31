@@ -52,7 +52,6 @@ def setup_loggers() -> Callable[[Flask], None]:
         "SERVER_SOFTWARE", "").split('/')
     return gunicorn_loggers if bool(software) else dev_loggers
 
-# app = create_app()
 app = create_app(setup_logging=setup_loggers())
 
 ##### BEGIN: CLI Commands #####
@@ -66,8 +65,14 @@ def apply_migrations():
 
 def __init_dev_users__():
     """Initialise dev users. Get's used in more than one place"""
-    dev_users_query = "INSERT INTO users VALUES (:user_id, :email, :name)"
-    dev_users_passwd = "INSERT INTO user_credentials VALUES (:user_id, :hash)"
+    dev_users_query = """
+    INSERT INTO users (user_id, email, name, verified)
+        VALUES (:user_id, :email, :name, 1)
+        ON CONFLICT(email) DO UPDATE SET
+            name=excluded.name,
+            verified=excluded.verified
+    """
+    dev_users_passwd = "INSERT OR REPLACE INTO user_credentials VALUES (:user_id, :hash)"
     dev_users = ({
         "user_id": "0ad1917c-57da-46dc-b79e-c81c91e5b928",
         "email": "test@development.user",
@@ -90,18 +95,26 @@ def init_dev_users():
     __init_dev_users__()
 
 @app.cli.command()
-def init_dev_clients():
+@click.option('--client-uri', default= "http://localhost:5033", type=str)
+def init_dev_clients(client_uri):
     """
     Initialise a development client for OAuth2 sessions.
 
     **NOTE**: You really should not run this in production/staging
     """
+    client_uri = client_uri.lstrip("/")
     __init_dev_users__()
-    dev_clients_query = (
-        "INSERT INTO oauth2_clients VALUES ("
-        ":client_id, :client_secret, :client_id_issued_at, "
-        ":client_secret_expires_at, :client_metadata, :user_id"
-        ")")
+    dev_clients_query = """
+        INSERT INTO oauth2_clients VALUES (
+        :client_id, :client_secret, :client_id_issued_at,
+        :client_secret_expires_at, :client_metadata, :user_id
+        )
+        ON CONFLICT(client_id) DO UPDATE SET
+            client_secret=excluded.client_secret,
+            client_secret_expires_at=excluded.client_secret_expires_at,
+            client_metadata=excluded.client_metadata,
+            user_id=excluded.user_id
+        """
     dev_clients = ({
         "client_id": "0bbfca82-d73f-4bd4-a140-5ae7abb4a64d",
         "client_secret": "yadabadaboo",
@@ -112,10 +125,11 @@ def init_dev_clients():
             "token_endpoint_auth_method": [
                 "client_secret_post", "client_secret_basic"],
             "client_type": "confidential",
-            "grant_types": ["password", "authorization_code", "refresh_token"],
-            "default_redirect_uri": "http://localhost:5033/oauth2/code",
-            "redirect_uris": ["http://localhost:5033/oauth2/code",
-                              "http://localhost:5033/oauth2/token"],
+            "grant_types": ["password", "authorization_code", "refresh_token",
+                            "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+            "default_redirect_uri": f"{client_uri}/oauth2/code",
+            "redirect_uris": [f"{client_uri}/oauth2/code",
+                              f"{client_uri}/oauth2/token"],
             "response_type": ["code", "token"],
             "scope": ["profile", "group", "role", "resource", "register-client",
                       "user", "masquerade", "migrate-data", "introspect"]

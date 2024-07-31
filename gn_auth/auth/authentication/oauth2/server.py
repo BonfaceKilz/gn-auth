@@ -10,6 +10,8 @@ from flask import Flask, current_app
 from authlib.jose import jwt, KeySet, JsonWebKey
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from authlib.integrations.flask_oauth2 import AuthorizationServer
+from authlib.oauth2.rfc6749 import OAuth2Request
+from authlib.integrations.flask_helpers import create_oauth_request
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.jwks import (
@@ -134,9 +136,17 @@ def make_jwt_token_generator(app):
     return __generator__
 
 
+
+class JsonAuthorizationServer(AuthorizationServer):
+
+    def create_oauth2_request(self, request):
+        res = create_oauth_request(request, OAuth2Request, True)
+        return res
+
+
 def setup_oauth2_server(app: Flask) -> None:
     """Set's up the oauth2 server for the flask application."""
-    server = AuthorizationServer()
+    server = JsonAuthorizationServer()
     server.register_grant(PasswordGrant)
 
     # Figure out a common `code_verifier` for GN2 and GN3 and set

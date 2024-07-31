@@ -14,7 +14,7 @@ The recommended way to pass configuration values to the application is via a
 configuration file passed in via the `GN_AUTH_CONF` environment variable. This
 variable simply holds the path to the configuration file, e.g.
 ```sh
-export GN_AUTH_CONF="${HOME}/genenetwork/configs/gn_auth_conf.py"
+export GN_AUTH_CONF="${HOME}/genenetwork/configs/gn_auth_conf.conf"
 ```
 
 The settings in the file above will override
@@ -186,7 +186,7 @@ If you have previously initialised the yoyo config file, you can put the databas
 As a convenience, and to enable the CI/CD to apply the migrations automatically, I have provided a flask cli command that can be run with:
 
 ```bash
-$ export FLASK_APP=main.py
+$ export FLASK_APP=wsgi.py
 $ flask apply-migrations
 ```
 
@@ -205,17 +205,42 @@ following environment variable(s):
 
 ### Development
 
+For initial set up, you need a custom configuration file that will contain
+custom local_settings. At minimum it can contain:
+
+```python
+# contents for local_settings saved at /absolute/path/to/local_settings_file.conf
+SECRET_KEY = "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk"
+SQL_URI = "mysql://user:password@localhost/db_name" # mysql uri
+AUTH_DB = "/absolute/path/to/auth.db/" # path to sqlite db file
+
+# OpenSSL keys
+CLIENTS_SSL_PUBLIC_KEYS_DIR = "/path/to/gn-auth/repo/tests/unit/test-public-keys-dir" # clients' public keys' directory
+SSL_PRIVATE_KEY = "/path/to/gn-auth/repo/tests/unit/test-ssl-private-key.pem" # authorisation server primary key
+```
+
+and you set up the oauth clients using:
+
+```
+export FLASK_DEBUG=1 AUTHLIB_INSECURE_TRANSPORT=1 OAUTHLIB_INSECURE_TRANSPORT=1 FLASK_APP=gn_auth/wsgi
+export GN_AUTH_CONF=/absolute/path/to/local_settings_file.conf
+# this sets up a user and client
+flask init-dev-clients --client-uri http://localhost:gn2_port_number
+```
+
 To run the application during development:
 
 ```sh
 export FLASK_DEBUG=1
-export FLASK_APP="main.py"
+export FLASK_APP="wsgi.py"
 export AUTHLIB_INSECURE_TRANSPORT=true
-export GN_AUTH_CONF="${HOME}/genenetwork/configs/gn_auth_conf.py"
+export GN_AUTH_CONF="/absolute/path/to/local_settings_file.conf"
 flask run --port=8081
 ```
 
-replace the `GN_AUTH_CONF` file with the correct path for your environment.
+You can test this by attemptiong to log in to your local GN2 using credentials
+defined by the dummy user you set up (see the function `__init_dev_users__` in
+`/gn_auth/wsgi.py`).
 
 ### Production
 

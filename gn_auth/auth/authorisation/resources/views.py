@@ -440,6 +440,14 @@ def resources_authorisation():
                 "Expected a JSON object with a 'resource-ids' key.")
         })
         resp.status_code = 400
+    except Exception as _exc:
+        app.logger.debug("Generic exception.", exc_info=True)
+        resp = jsonify({
+            "status": "general-exception",
+            "error_description": (
+                "Failed to fetch the user's privileges.")
+        })
+        resp.status_code = 500
 
     return resp
 

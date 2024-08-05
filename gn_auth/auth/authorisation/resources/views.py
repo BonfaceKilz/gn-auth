@@ -46,7 +46,7 @@ from .models import (
     unassign_resource_user, resource_category_by_id, user_roles_on_resources,
     unlink_data_from_resource, create_resource as _create_resource,
     get_resource_id)
-from .groups.models import Group, resource_owner, group_role_by_id
+from .groups.models import Group
 
 resources = Blueprint("resources", __name__)
 
@@ -440,7 +440,7 @@ def resources_authorisation():
                 "Expected a JSON object with a 'resource-ids' key.")
         })
         resp.status_code = 400
-    except Exception as _exc:
+    except Exception as _exc:#pylint: disable=[broad-except]
         app.logger.debug("Generic exception.", exc_info=True)
         resp = jsonify({
             "status": "general-exception",

@@ -138,8 +138,10 @@ def make_jwt_token_generator(app):
 
 
 class JsonAuthorizationServer(AuthorizationServer):
+    """An authorisation server using JSON rather than FORMDATA."""
 
     def create_oauth2_request(self, request):
+        """Create an OAuth2 Request from the flask request."""
         res = create_oauth_request(request, OAuth2Request, True)
         return res
 

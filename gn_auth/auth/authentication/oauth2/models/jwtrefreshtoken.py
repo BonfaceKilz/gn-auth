@@ -142,7 +142,7 @@ def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
                  "WHERE token=:parenttoken"),
                 {"parenttoken": parent.token, "childtoken": childtoken})
 
-    def __check_child__(parent):
+    def __check_child__(parent):#pylint: disable=[unused-variable]
         with db.cursor(conn) as cursor:
             cursor.execute(
                 ("SELECT * FROM jwt_refresh_tokens WHERE token=:parenttoken"),
@@ -154,7 +154,7 @@ def link_child_token(conn: db.DbConnection, parenttoken: str, childtoken: str):
                     "activity detected.")
             return Right(parent)
 
-    def __revoke_and_raise_error__(_error_msg_):
+    def __revoke_and_raise_error__(_error_msg_):#pylint: disable=[unused-variable]
         load_refresh_token(conn, parenttoken).then(
             lambda _tok: revoke_refresh_token(conn, _tok))
         raise InvalidGrantError(_error_msg_)

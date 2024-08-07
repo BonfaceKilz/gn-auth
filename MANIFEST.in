@@ -1,2 +1,2 @@
-global-include static/**/*.js static/**/*.css templates/**/*.html
+global-include static/**/*.js static/**/*.css templates/**/*.html templates/**/*.txt
 global-exclude *~ *.py[cod]

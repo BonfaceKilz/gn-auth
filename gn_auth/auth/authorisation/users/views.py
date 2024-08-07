@@ -187,11 +187,11 @@ def register_user() -> Response:
                                         redirect_uri=form["redirect_uri"])
                 return jsonify(asdict(user))
         except sqlite3.IntegrityError as sq3ie:
-            current_app.logger.debug(traceback.format_exc())
+            current_app.logger.error(traceback.format_exc())
             raise UserRegistrationError(
                 "A user with that email already exists") from sq3ie
         except EmailNotValidError as enve:
-            current_app.logger.debug(traceback.format_exc())
+            current_app.logger.error(traceback.format_exc())
             raise(UserRegistrationError(f"Email Error: {str(enve)}")) from enve
 
     raise Exception(

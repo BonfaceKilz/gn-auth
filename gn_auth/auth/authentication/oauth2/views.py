@@ -74,7 +74,8 @@ def authorise():
                             url_for("oauth2.users.handle_unverified",
                                     response_type=form["response_type"],
                                     client_id=client_id,
-                                    redirect_uri=form["redirect_uri"]),
+                                    redirect_uri=form["redirect_uri"],
+                                    email=email["email"]),
                             code=307)
                     return server.create_authorization_response(request=request, grant_user=user)
                 flash(email_passwd_msg, "alert-danger")

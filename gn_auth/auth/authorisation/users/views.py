@@ -315,7 +315,7 @@ def handle_unverified():
     #       or pass the client_id here?
     return render_template(
         "users/unverified-user.html",
-        email=form.get("user:email"),
+        email=request.args["email"],
         response_type=request.args["response_type"],
         client_id=request.args["client_id"],
         redirect_uri=request.args["redirect_uri"])

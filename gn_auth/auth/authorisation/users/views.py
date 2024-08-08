@@ -240,6 +240,7 @@ def verify_user():
             delete_verification_code(cursor, verificationcode)
             flash("Invalid verification code: code has expired.",
                   "alert-danger")
+            return loginuri
 
         # Code is good!
         delete_verification_code(cursor, verificationcode)

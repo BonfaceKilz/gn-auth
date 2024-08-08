@@ -23,7 +23,7 @@ def build_email_message(# pylint: disable=[too-many-arguments]
         htmlmessage: str = "",
         attachments: tuple[str, ...] = tuple(),
         from_address: Address = Address(
-            "GeneNetwork Automated Emails", "no-reply", "genenetwork.org")
+            "GeneNetwork Automated Emails", "no-reply", "uthsc.edu")
 ) -> EmailMessage:
     """Build an email message."""
     msg = EmailMessage()
@@ -53,6 +53,5 @@ def send_message(# pylint: disable=[too-many-arguments]
     """Set up a connection to a SMTP server and send a message."""
     logging.debug("Email to send:\n******\n%s\n******\n", message.as_string())
     with smtplib.SMTP(host, port, local_hostname, timeout, source_address) as conn:
-        conn.starttls()
-        conn.login(smtp_user, smtp_passwd)
+        conn.ehlo()
         conn.send_message(message)

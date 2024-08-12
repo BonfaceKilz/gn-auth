@@ -130,6 +130,7 @@ def init_dev_clients(client_uri):
             "default_redirect_uri": f"{client_uri}/oauth2/code",
             "redirect_uris": [f"{client_uri}/oauth2/code",
                               f"{client_uri}/oauth2/token"],
+            "public-jwks-uri": f"{client_uri}/oauth2/public-jwks",
             "response_type": ["code", "token"],
             "scope": ["profile", "group", "role", "resource", "register-client",
                       "user", "masquerade", "migrate-data", "introspect"]

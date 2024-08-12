@@ -210,13 +210,17 @@ custom local_settings. At minimum it can contain:
 
 ```python
 # contents for local_settings saved at /absolute/path/to/local_settings_file.conf
-SECRET_KEY = "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk"
 SQL_URI = "mysql://user:password@localhost/db_name" # mysql uri
 AUTH_DB = "/absolute/path/to/auth.db/" # path to sqlite db file
+# path to file containings SECRETS key.
+# Note: this path is also used to determine the jwks location
+GN_AUTH_SECRETS = "/home/rookie/gn_data/gn2_files/secrets.conf"
+```
 
-# OpenSSL keys
-CLIENTS_SSL_PUBLIC_KEYS_DIR = "/path/to/gn-auth/repo/tests/unit/test-public-keys-dir" # clients' public keys' directory
-SSL_PRIVATE_KEY = "/path/to/gn-auth/repo/tests/unit/test-ssl-private-key.pem" # authorisation server primary key
+Here's an example `secrets.conf` file:
+
+```python
+SECRET_KEY = "qQIrgiK29kXZU6v8D09y4uw_sk8I4cqgNZniYUrRoUk"
 ```
 
 and you set up the oauth clients using:

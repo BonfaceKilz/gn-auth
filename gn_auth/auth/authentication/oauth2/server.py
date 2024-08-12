@@ -15,7 +15,7 @@ from authlib.integrations.flask_helpers import create_oauth_request
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.jwks import (
-    list_jwks, newest_jwk, jwks_directory, generate_and_save_private_key)
+    list_jwks, newest_jwk_with_rotation, jwks_directory, generate_and_save_private_key)
 
 from .models.oauth2client import client as fetch_client
 from .models.oauth2token import OAuth2Token, save_token
@@ -95,23 +95,6 @@ def create_save_token_func(token_model: type, app: Flask) -> Callable:
                 conn, _tok.token, new_refresh_token.token))
 
     return __save_token__
-
-def newest_jwk_with_rotation(jwksdir: Path, keyage: int) -> JsonWebKey:
-    """
-    Retrieve the latests JWK, creating a new one if older than `keyage` days.
-    """
-    def newer_than_days(jwkey):
-        filestat = os.stat(Path(
-            jwksdir, f"{jwkey.as_dict()['kid']}.private.pem"))
-        oldesttimeallowed = (datetime.now() - timedelta(days=keyage))
-        if filestat.st_ctime < (oldesttimeallowed.timestamp()):
-            return Left("JWK is too old!")
-        return jwkey
-
-    return newest_jwk(jwksdir).then(newer_than_days).either(
-        lambda _errmsg: generate_and_save_private_key(jwksdir),
-        lambda key: key)
-
 
 def make_jwt_token_generator(app):
     """Make token generator function."""

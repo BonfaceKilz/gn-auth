@@ -42,3 +42,4 @@ SMTP_PORT = 587
 SMTP_TIMEOUT = 200 # seconds
 SMTP_USER = "no-reply@genenetwork.org"
 SMTP_PASSWORD = "asecrettoken"
+EMAIL_ADDRESS = "no-reply@uthsc.edu"

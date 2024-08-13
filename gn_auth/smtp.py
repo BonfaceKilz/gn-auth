@@ -17,17 +17,17 @@ def __read_mime__(filepath) -> dict:
 
 
 def build_email_message(# pylint: disable=[too-many-arguments]
+        from_address: str,
         to_addresses: tuple[Address, ...],
         subject: str,
         txtmessage: str,
         htmlmessage: str = "",
-        attachments: tuple[str, ...] = tuple(),
-        from_address: Address = Address(
-            "GeneNetwork Automated Emails", "no-reply", "uthsc.edu")
+        attachments: tuple[str, ...] = tuple()
 ) -> EmailMessage:
     """Build an email message."""
     msg = EmailMessage()
-    msg["From"] = from_address
+    msg["From"] = Address(display_name="GeneNetwork Automated Emails",
+                          addr_spec=from_address)
     msg["To"] = to_addresses
     msg["Subject"] = subject
     msg.set_content(txtmessage)

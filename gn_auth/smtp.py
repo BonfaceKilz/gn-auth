@@ -41,8 +41,8 @@ def build_email_message(# pylint: disable=[too-many-arguments]
 
 
 def send_message(# pylint: disable=[too-many-arguments]
-        smtp_user: str,
-        smtp_passwd: str,
+        smtp_user: str,# pylint: disable=[unused-argument]
+        smtp_passwd: str,# pylint: disable=[unused-argument]
         message: EmailMessage,
         host: str = "",
         port: int = 587,

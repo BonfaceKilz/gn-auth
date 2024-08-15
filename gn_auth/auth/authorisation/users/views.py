@@ -312,7 +312,6 @@ def list_all_users() -> Response:
 @users.route("/handle-unverified", methods=["POST"])
 def handle_unverified():
     """Handle case where user tries to login but is unverified"""
-    form = request_json()
     email = request.args["email"]
     # TODO: Maybe have a GN2_URI setting here?
     #       or pass the client_id here?

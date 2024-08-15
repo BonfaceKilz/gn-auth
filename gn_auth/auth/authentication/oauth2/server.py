@@ -1,13 +1,10 @@
 """Initialise the OAuth2 Server"""
-import os
 import uuid
-from pathlib import Path
 from typing import Callable
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from pymonad.either import Left
 from flask import Flask, current_app
-from authlib.jose import jwt, KeySet, JsonWebKey
+from authlib.jose import jwt, KeySet
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 from authlib.oauth2.rfc6749 import OAuth2Request
@@ -15,7 +12,9 @@ from authlib.integrations.flask_helpers import create_oauth_request
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.jwks import (
-    list_jwks, newest_jwk_with_rotation, jwks_directory, generate_and_save_private_key)
+    list_jwks,
+    jwks_directory,
+    newest_jwk_with_rotation)
 
 from .models.oauth2client import client as fetch_client
 from .models.oauth2token import OAuth2Token, save_token

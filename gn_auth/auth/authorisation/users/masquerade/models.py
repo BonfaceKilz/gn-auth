@@ -37,7 +37,8 @@ def can_masquerade(func):
         masq_privs = []
         for roles in user_roles(conn, token.user):
             for role in roles["roles"]:
-                privileges = [p for p in role.privileges if p.privilege_id == "system:user:masquerade"]
+                privileges = [p for p in role.privileges
+                              if p.privilege_id == "system:user:masquerade"]
                 masq_privs.extend(privileges)
 
         if len(masq_privs) == 0:

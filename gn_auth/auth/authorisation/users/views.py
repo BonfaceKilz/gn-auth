@@ -1,12 +1,12 @@
 """User authorisation endpoints."""
 import sqlite3
 import secrets
-import datetime
 import traceback
 from typing import Any
 from functools import partial
 from dataclasses import asdict
 from urllib.parse import urljoin
+from datetime import datetime, timedelta
 from email.headerregistry import Address
 from email_validator import validate_email, EmailNotValidError
 from flask import (
@@ -123,7 +123,7 @@ def send_verification_email(
     """Send an email verification message."""
     subject="GeneNetwork: Please Verify Your Email"
     verification_code = secrets.token_urlsafe(64)
-    generated = datetime.datetime.now()
+    generated = datetime.now()
     expiration_minutes = 15
     def __render__(template):
         return render_template(template,
@@ -148,7 +148,7 @@ def send_verification_email(
                 "generated": int(generated.timestamp()),
                 "expires": int(
                     (generated +
-                     datetime.timedelta(
+                     timedelta(
                          minutes=expiration_minutes)).timestamp())
             })
         send_message(smtp_user=current_app.config["SMTP_USER"],
@@ -236,8 +236,8 @@ def verify_user():
             return loginuri
 
         results = results[0]
-        if (datetime.datetime.fromtimestamp(
-                int(results["expires"])) < datetime.datetime.now()):
+        if (datetime.fromtimestamp(
+                int(results["expires"])) < datetime.now()):
             delete_verification_code(cursor, verificationcode)
             flash("Invalid verification code: code has expired.",
                   "alert-danger")

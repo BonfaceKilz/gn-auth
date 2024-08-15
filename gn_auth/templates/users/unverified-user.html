@@ -16,12 +16,12 @@
           action="{{url_for('oauth2.users.verify_user')}}">
       <legend>Email Verification</legend>
 
-      <p>Your email is not verified. We do require that you do.</p>
+      <p>If you are seeing this, your account needs to be verified.</p>
 
-      <p>Since you are seeing this, it means an email was sent to you with a
-        verification token, that you are expected to provide below. Please do that
-        and click the "<em>Verify Email Address</em>" button to verify your
-        account.</p>
+      <p>An email with a verification token has already been sent to the address
+        associated with this account (<em>{{email}}</em>). Please provide that
+        verification token below and click the "<em>Verify Email Address</em>"
+        button to verify your account.</p>
 
       <input type="hidden" name="email" value="{{email}}" />
       <input type="hidden" name="response_type" value="{{response_type}}" />

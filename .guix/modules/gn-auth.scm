@@ -34,8 +34,7 @@
         #~(modify-phases #$phases
             (add-before 'build 'pylint
               (lambda _
-                (invoke "pylint" "main.py" "setup.py" "wsgi.py"
-                        "tests" "gn_auth" "scripts")))
+                (invoke "pylint" "setup.py" "tests" "gn_auth" "scripts")))
             (add-after 'pylint 'mypy
               (lambda _
                 (invoke "mypy" ".")))))))

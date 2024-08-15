@@ -35,8 +35,9 @@ def handle_general_exception(exc: Exception):
     current_app.logger.error("Error occurred!", exc_info=True)
     content_type = request.content_type
     if bool(content_type) and content_type.lower() == "application/json":
+        exc_args = [str(x) for x in exc.args]
         msg = ("The following exception was raised while attempting to access "
-               f"{request.url}: {' '.join(exc.args)}")
+               f"{request.url}: {' '.join(exc_args)}")
         return jsonify(add_trace(exc, {
             "error": type(exc).__name__,
             "error_description": msg

@@ -33,7 +33,7 @@ def masquerade() -> Response:
             return new_token
         def __dump_token__(tok):
             return {
-                key: value for key, value in tok.items()
+                key: value for key, value in asdict(tok).items()
                 if key in ("access_token", "refresh_token", "expires_in",
                            "token_type")
             }

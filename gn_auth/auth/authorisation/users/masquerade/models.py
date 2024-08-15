@@ -1,12 +1,15 @@
 """Functions for handling masquerade."""
-from uuid import uuid4
+import uuid
 from functools import wraps
 from datetime import datetime
+from authlib.jose import jwt
 
 from flask import current_app as app
 
 
 from gn_auth.auth.errors import ForbiddenAccess
+
+from gn_auth.auth.jwks import newest_jwk_with_rotation, jwks_directory
 
 from ...roles.models import user_roles
 from ....db import sqlite3 as db
@@ -55,8 +58,14 @@ def masquerade_as(
         user=masqueradee,
         expires_in=__FIVE_HOURS__,
         include_refresh_token=True)
+
+    _jwt = jwt.decode(
+        original_token.access_token,
+        newest_jwk_with_rotation(
+            jwks_directory(app),
+            int(app.config["JWKS_ROTATION_AGE_DAYS"])))
     new_token = OAuth2Token(
-        token_id=uuid4(),
+        token_id=uuid.UUID(_jwt["jti"]),
         client=original_token.client,
         token_type=token_details["token_type"],
         access_token=token_details["access_token"],

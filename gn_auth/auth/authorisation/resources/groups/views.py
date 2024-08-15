@@ -48,7 +48,7 @@ def create_group():
     with require_oauth.acquire("profile group") as the_token:
         group_name=request_json().get("group_name", "").strip()
         if not bool(group_name):
-            raise GroupCreationError("Could not create the group.")
+            raise GroupCreationError(f"Could not create the group. Invalid Group name provided was `{group_name}`")
 
         db_uri = current_app.config["AUTH_DB"]
         with db.connection(db_uri) as conn:

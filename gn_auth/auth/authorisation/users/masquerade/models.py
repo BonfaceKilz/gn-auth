@@ -31,9 +31,12 @@ def can_masquerade(func):
             conn = kwargs["conn"]
             token = kwargs["original_token"]
 
-        masq_privs = [priv for role in user_roles(conn, token.user)
-                      for priv in role.privileges
-                      if priv.privilege_id == "system:user:masquerade"]
+        masq_privs = []
+        for roles in user_roles(conn, token.user):
+            for role in roles["roles"]:
+                privileges = [p for p in role.privileges if p.privilege_id == "system:user:masquerade"]
+                masq_privs.extend(privileges)
+
         if len(masq_privs) == 0:
             raise ForbiddenAccess(
                 "You do not have the ability to masquerade as another user.")

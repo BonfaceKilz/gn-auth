@@ -33,13 +33,13 @@ def masquerade() -> Response:
             return new_token
         def __dump_token__(tok):
             return {
-                key: value for key, value in (tok._asdict().items())
+                key: value for key, value in tok.items()
                 if key in ("access_token", "refresh_token", "expires_in",
                            "token_type")
             }
         return jsonify({
             "original": {
-                "user": token.user._asdict(),
+                "user": asdict(token.user),
                 "token": __dump_token__(token)
             },
             "masquerade_as": {

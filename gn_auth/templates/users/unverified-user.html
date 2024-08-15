@@ -7,69 +7,87 @@
 {%block content%}
 {{flash_messages()}}
 
-<h1>Verify Your E-Mail</h1>
+<div class="container-fluid">
+  <div class="row"><h1>Verify Your E-Mail</h1></div>
 
-<form id="frm-email-verification" method="POST"
-      action="{{url_for('oauth2.users.verify_user')}}">
-  <legend>Email Verification</legend>
+  {%if token_found:%}
+  <div class="row">
+    <form id="frm-email-verification" method="POST"
+          action="{{url_for('oauth2.users.verify_user')}}">
+      <legend>Email Verification</legend>
 
-  <p>In order to reduce the number of bots we have to deal with, we no longer
-    allow sign-in with users who have not verified their accounts.</p>
+      <p>Your email is not verified. We do require that you do.</p>
 
-  <p>We know this is annoying &mdash; especially if you already have an account,
-    and have been using it just fine &mdash; however, we have found that without
-    this check in place, we will get overrun by silly bots, which will ruin
-    every user's experience.</p>
+      <p>Since you are seeing this, it means an email was sent to you with a
+        verification token, that you are expected to provide below. Please do that
+        and click the "<em>Verify Email Address</em>" button to verify your
+        account.</p>
 
-  <p>
-    Do bear with us, enter the verification code you received via email below:
-  </p>
+      <input type="hidden" name="email" value="{{email}}" />
+      <input type="hidden" name="response_type" value="{{response_type}}" />
+      <input type="hidden" name="client_id" value="{{client_id}}" />
+      <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
 
-  <input type="hidden" name="email" value="{{email}}" />
-  <input type="hidden" name="response_type" value="{{response_type}}" />
-  <input type="hidden" name="client_id" value="{{client_id}}" />
-  <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
+      <fieldset class="form-group">
+        <label for="txt-verification-code" class="form-label">
+          Verification Code</label>
+        <input id="txt-verification-code" name="verificationcode" type="text"
+               required="required" class="form-control"
+               placeholder="Enter your verification code here." />
+      </fieldset>
 
-  <fieldset class="form-group">
-    <label for="txt-verification-code" class="form-label">
-      Verification Code</label>
-    <input id="txt-verification-code" name="verificationcode" type="text"
-           required="required" class="form-control"
-           placeholder="Enter your verification code here." />
-  </fieldset>
+      <fieldset>
+        <input type="submit" value="Verify Email Address" class="btn btn-primary" />
+      </fieldset>
+    </form>
+  </div>
+  {%else:%}
+  <div class="row">
+    <form id="frm-send-verification-code" method="POST"
+          action="{{url_for('oauth2.users.send_verification_code')}}">
+      <legend>Send Verification Code</legend>
 
-  <fieldset>
-    <input type="submit" value="Verify Email Address" class="btn btn-primary" />
-  </fieldset>
-</form>
+      <p>Provide your password below, and we will send you a verification password
+        to your email.</p>
+      <p>You are seeing this page because:</p>
+      <ol type="a">
+        <li>You already had an existing account.<br />
+          In this case, you will need to request a verification code by
+          providing your email below and clicking the
+          "<em>Send Verification Code</em>" button.<br />
+          We will send you an email with both:
+          <ol type="1">
+            <li>a link you can click to verify your email, <strong>and</strong>
+            </li>
+            <li>a token to copy and paste if you choose not to follow the link.
+            </li>
+          </ol>
+        </li>
+        <li>You registered your account recently, but did not verify it within the
+          time period allocated for that. In this case, simply request a new
+          verification email below, and follow the link, or copy and paste the
+          token in the email we send you.</li>
+      </ol>
 
-<h2>Send Verification Code</h2>
+      <input type="hidden" name="user_email" value="{{email}}" />
+      <input type="hidden" name="response_type" value="{{response_type}}" />
+      <input type="hidden" name="client_id" value="{{client_id}}" />
+      <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
 
-<form id="frm-send-verification-code" method="POST"
-      action="{{url_for('oauth2.users.send_verification_code')}}">
-  <legend>Send Verification Code</legend>
+      <fieldset class="form-group">
+        <label class="form-label">Email</label>
+        <label class="form-control">{{email}}</label>
+      </fieldset>
 
-  <p>If you have not received a verification code, or your code is already
-    expired, provide <strong>your GeneNetwork</strong> password and
-    click the "<em>Send Verification Code</em>" button below and we will send
-    you a new verification code.</p>
-
-  <input type="hidden" name="user_email" value="{{email}}" />
-  <input type="hidden" name="response_type" value="{{response_type}}" />
-  <input type="hidden" name="client_id" value="{{client_id}}" />
-  <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
-
-  <fieldset class="form-group">
-    <label class="form-label">Email</label>
-    <label class="form-control">{{email}}</label>
-  </fieldset>
-
-  <fieldset class="form-group">
-    <label for="txt-password" class="form-label">Password</label>
-    <input id="txt-password" name="user_password" type="password"
-           placeholder="Enter your GeneNetwork password"
-           class="form-control" />
-  </fieldset>
-  <input type="submit" value="Send Verification Code" class="btn btn-danger" />
-</form>
+      <fieldset class="form-group">
+        <label for="txt-password" class="form-label">Password</label>
+        <input id="txt-password" name="user_password" type="password"
+               placeholder="Enter your GeneNetwork password"
+               class="form-control" />
+      </fieldset>
+      <input type="submit" value="Send Verification Code" class="btn btn-danger" />
+    </form>
+  </div>
+  {%endif%}
+</div>
 {%endblock%}

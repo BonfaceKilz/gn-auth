@@ -313,14 +313,29 @@ def list_all_users() -> Response:
 def handle_unverified():
     """Handle case where user tries to login but is unverified"""
     form = request_json()
+    email = request.args["email"]
     # TODO: Maybe have a GN2_URI setting here?
     #       or pass the client_id here?
+    with (db.connection(current_app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        cursor.execute(
+            "DELETE FROM user_verification_codes WHERE expires <= ?",
+            (int(datetime.now().timestamp()),))
+        cursor.execute(
+            "SELECT u.user_id, u.email, uvc.* FROM users AS u "
+            "INNER JOIN user_verification_codes AS uvc "
+            "ON u.user_id=uvc.user_id "
+            "WHERE u.email=?",
+            (email,))
+        token_found = bool(cursor.fetchone())
+
     return render_template(
         "users/unverified-user.html",
-        email=request.args["email"],
+        email=email,
         response_type=request.args["response_type"],
         client_id=request.args["client_id"],
-        redirect_uri=request.args["redirect_uri"])
+        redirect_uri=request.args["redirect_uri"],
+        token_found=token_found)
 
 @users.route("/send-verification", methods=["POST"])
 def send_verification_code():

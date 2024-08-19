@@ -366,3 +366,75 @@ def send_verification_code():
     })
     resp.code = 400
     return resp
+
+
+def send_forgot_password_email(conn, user: User):
+    """Send the 'forgot-password' email."""
+    subject="GeneNetwork: Change Your Password"
+    token = secrets.token_urlsafe(64)
+    generated = datetime.now()
+    expiration_minutes = 15
+    def __render__(template):
+        return render_template(template,
+                               subject=subject,
+                               forgot_password_uri=urljoin(
+                                   request.url,
+                                   url_for("oauth2.users.change_password",
+                                           forgot_password_token=token)),
+                               expiration_minutes=expiration_minutes)
+
+    with db.cursor(conn) as cursor:
+        cursor.execute(
+            ("INSERT INTO "
+             "forgot_password_tokens(user_id, token, generated, expires) "
+             "VALUES (:user_id, :token, :generated, :expires) "
+             "ON CONFLICT (user_id) REPLACE"),
+            {
+                "user_id": str(user.user_id),
+                "token": token,
+                "generated": int(generated.timestamp()),
+                "expires": int(
+                    (generated +
+                     timedelta(
+                         minutes=expiration_minutes)).timestamp())
+            })
+        send_message(smtp_user=current_app.config["SMTP_USER"],
+                     smtp_passwd=current_app.config["SMTP_PASSWORD"],
+                     message=build_email_message(
+                         from_address=current_app.config["EMAIL_ADDRESS"],
+                         to_addresses=(user_address(user),),
+                         subject=subject,
+                         txtmessage=__render__("emails/forgot-password.txt"),
+                         htmlmessage=__render__("emails/forgot-password.html")),
+                     host=current_app.config["SMTP_HOST"],
+                     port=current_app.config["SMTP_PORT"])
+
+
+@users.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Enable user to request password change."""
+    if request.method == "GET":
+        return render_template("users/forgot-password.html")
+
+    form = request.form
+    email = form.get("email", "").strip()
+    if not bool(email):
+        flash("You MUST provide an email.", "alert-danger")
+        return redirect(url_for("oauth2.users.forgot_password"))
+
+    with (db.connection(current_app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        user = user_by_email(conn, form["email"])
+        if not bool(user):
+            flash("We could not find an account with that email.",
+                  "alert-danger")
+            return redirect(url_for("oauth2.users.forgot_password"))
+
+        send_forgot_password_email(conn, user)
+        return render_template("users/forgot-password-token-send-success.html")
+
+
+@users.route("/change-password/<forgot_password_token>", methods=["GET", "POST"])
+def change_password(forgot_password_token):
+    """Enable user to perform password change."""
+    return "Would change password..."

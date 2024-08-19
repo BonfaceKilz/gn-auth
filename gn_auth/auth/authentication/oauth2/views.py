@@ -47,6 +47,14 @@ def authorise():
             flash("Invalid OAuth2 client.", "alert-danger")
 
         if request.method == "GET":
+            def __forgot_password_table_exists__(conn):
+                with db.cursor(conn) as cursor:
+                    cursor.execute("SELECT name FROM sqlite_master "
+                                   "WHERE type='table' "
+                                   "AND name='forgot_password_tokens'")
+                    return bool(cursor.fetchone())
+                return False
+
             client = server.query_client(request.args.get("client_id"))
             _src = urlparse(request.args["redirect_uri"])
             return render_template(
@@ -55,7 +63,9 @@ def authorise():
                 scope=client.scope,
                 response_type=request.args["response_type"],
                 redirect_uri=request.args["redirect_uri"],
-                source_uri=f"{_src.scheme}://{_src.netloc}/")
+                source_uri=f"{_src.scheme}://{_src.netloc}/",
+                display_forgot_password=with_db_connection(
+                    __forgot_password_table_exists__))
 
         form = request.form
         def __authorise__(conn: db.DbConnection):

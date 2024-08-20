@@ -1,4 +1,5 @@
 """User authorisation endpoints."""
+import uuid
 import sqlite3
 import secrets
 import traceback
@@ -368,7 +369,13 @@ def send_verification_code():
     return resp
 
 
-def send_forgot_password_email(conn, user: User):
+def send_forgot_password_email(
+        conn,
+        user: User,
+        client_id: uuid.UUID,
+        redirect_uri: str,
+        response_type: str
+):
     """Send the 'forgot-password' email."""
     subject="GeneNetwork: Change Your Password"
     token = secrets.token_urlsafe(64)
@@ -380,7 +387,10 @@ def send_forgot_password_email(conn, user: User):
                                forgot_password_uri=urljoin(
                                    request.url,
                                    url_for("oauth2.users.change_password",
-                                           forgot_password_token=token)),
+                                           forgot_password_token=token,
+                                           client_id=client_id,
+                                           redirect_uri=redirect_uri,
+                                           response_type=response_type)),
                                expiration_minutes=expiration_minutes)
 
     with db.cursor(conn) as cursor:
@@ -413,7 +423,10 @@ def send_forgot_password_email(conn, user: User):
 def forgot_password():
     """Enable user to request password change."""
     if request.method == "GET":
-        return render_template("users/forgot-password.html")
+        return render_template("users/forgot-password.html",
+                               client_id=request.args["client_id"],
+                               redirect_uri=request.args["redirect_uri"],
+                               response_type=request.args["response_type"])
 
     form = request.form
     email = form.get("email", "").strip()
@@ -429,7 +442,11 @@ def forgot_password():
                   "alert-danger")
             return redirect(url_for("oauth2.users.forgot_password"))
 
-        send_forgot_password_email(conn, user)
+        send_forgot_password_email(conn,
+                                   user,
+                                   request.args["client_id"],
+                                   request.args["redirect_uri"],
+                                   request.args["response_type"])
         return render_template("users/forgot-password-token-send-success.html")
 
 

@@ -33,7 +33,10 @@
   <div class="form-group">
     <input type="submit" value="authorise" class="btn btn-primary" />
     {%if display_forgot_password%}
-    <a href="{{url_for('oauth2.users.forgot_password')}}"
+    <a href="{{url_for('oauth2.users.forgot_password',
+             client_id=client.client_id,
+             redirect_uri=redirect_uri,
+             response_type=response_type)}}"
        title="Click here to change your password."
        class="form-text text-danger">Forgot Password</a>
     {%endif%}

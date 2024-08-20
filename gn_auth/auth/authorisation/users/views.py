@@ -385,10 +385,9 @@ def send_forgot_password_email(conn, user: User):
 
     with db.cursor(conn) as cursor:
         cursor.execute(
-            ("INSERT INTO "
+            ("INSERT OR REPLACE INTO "
              "forgot_password_tokens(user_id, token, generated, expires) "
-             "VALUES (:user_id, :token, :generated, :expires) "
-             "ON CONFLICT (user_id) REPLACE"),
+             "VALUES (:user_id, :token, :generated, :expires)"),
             {
                 "user_id": str(user.user_id),
                 "token": token,

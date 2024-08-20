@@ -407,16 +407,17 @@ def send_forgot_password_email(
                      timedelta(
                          minutes=expiration_minutes)).timestamp())
             })
-        send_message(smtp_user=current_app.config["SMTP_USER"],
-                     smtp_passwd=current_app.config["SMTP_PASSWORD"],
-                     message=build_email_message(
-                         from_address=current_app.config["EMAIL_ADDRESS"],
-                         to_addresses=(user_address(user),),
-                         subject=subject,
-                         txtmessage=__render__("emails/forgot-password.txt"),
-                         htmlmessage=__render__("emails/forgot-password.html")),
-                     host=current_app.config["SMTP_HOST"],
-                     port=current_app.config["SMTP_PORT"])
+
+    send_message(smtp_user=current_app.config["SMTP_USER"],
+                 smtp_passwd=current_app.config["SMTP_PASSWORD"],
+                 message=build_email_message(
+                     from_address=current_app.config["EMAIL_ADDRESS"],
+                     to_addresses=(user_address(user),),
+                     subject=subject,
+                     txtmessage=__render__("emails/forgot-password.txt"),
+                     htmlmessage=__render__("emails/forgot-password.html")),
+                 host=current_app.config["SMTP_HOST"],
+                 port=current_app.config["SMTP_PORT"])
 
 
 @users.route("/forgot-password", methods=["GET", "POST"])

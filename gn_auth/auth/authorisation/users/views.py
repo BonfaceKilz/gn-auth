@@ -453,4 +453,29 @@ def forgot_password():
 @users.route("/change-password/<forgot_password_token>", methods=["GET", "POST"])
 def change_password(forgot_password_token):
     """Enable user to perform password change."""
-    return "Would change password..."
+    login_page = redirect(url_for("oauth2.auth.authorise",
+                                  client_id=request.args["client_id"],
+                                  redirect_uri=request.args["redirect_uri"],
+                                  response_type=request.args["response_type"]))
+    with (db.connection(current_app.config["AUTH_DB"]) as conn,
+          db.cursor(conn) as cursor):
+        cursor.execute("DELETE FROM forgot_password_tokens WHERE expires<=?",
+                       (int(datetime.now().timestamp()),))
+        cursor.execute(
+            "SELECT fpt.*, u.email FROM forgot_password_tokens AS fpt "
+            "INNER JOIN users AS u ON fpt.user_id=u.user_id WHERE token=?",
+            (forgot_password_token,))
+        if request.method == "GET":
+            token = cursor.fetchone()
+            if bool(token):
+                return render_template(
+                    "users/change-password.html",
+                    email=token["email"],
+                    client_id=request.args["client_id"],
+                    redirect_uri=request.args["redirect_uri"],
+                    response_type=request.args["response_type"],
+                    forgot_password_token=forgot_password_token)
+            flash("Invalid Token: We cannot change your password!",
+                  "alert-danger")
+            return login_page
+        return "Do actual password change..."

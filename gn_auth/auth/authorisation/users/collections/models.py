@@ -205,8 +205,10 @@ def add_traits(rconn: Redis,
     mod_col = tuple(coll for coll in ucolls if coll["id"] == collection_id)
     __raise_if_not_single_collection__(user, collection_id, mod_col)
     new_members = tuple(set(tuple(mod_col[0]["members"]) + traits))
+    now = datetime.utcnow()
     new_coll = {
         **mod_col[0],
+        "changed": now,
         "members": new_members,
         "num_members": len(new_members)
     }
@@ -233,8 +235,10 @@ def remove_traits(rconn: Redis,
     __raise_if_not_single_collection__(user, collection_id, mod_col)
     new_members = tuple(
         trait for trait in mod_col[0]["members"] if trait not in traits)
+    now = datetime.utcnow()
     new_coll = {
         **mod_col[0],
+        "changed": now,
         "members": new_members,
         "num_members": len(new_members)
     }

@@ -435,8 +435,7 @@ def forgot_password():
         flash("You MUST provide an email.", "alert-danger")
         return redirect(url_for("oauth2.users.forgot_password"))
 
-    with (db.connection(current_app.config["AUTH_DB"]) as conn,
-          db.cursor(conn) as cursor):
+    with db.connection(current_app.config["AUTH_DB"]) as conn:
         user = user_by_email(conn, form["email"])
         if not bool(user):
             flash("We could not find an account with that email.",
@@ -467,8 +466,8 @@ def change_password(forgot_password_token):
             "SELECT fpt.*, u.email FROM forgot_password_tokens AS fpt "
             "INNER JOIN users AS u ON fpt.user_id=u.user_id WHERE token=?",
             (forgot_password_token,))
+        token = cursor.fetchone()
         if request.method == "GET":
-            token = cursor.fetchone()
             if bool(token):
                 return render_template(
                     "users/change-password.html",
@@ -480,4 +479,28 @@ def change_password(forgot_password_token):
             flash("Invalid Token: We cannot change your password!",
                   "alert-danger")
             return login_page
-        return "Do actual password change..."
+
+        password = request.form["password"]
+        confirm_password = request.form["confirm-password"]
+        change_password_page = redirect(url_for(
+            "oauth2.users.change_password",
+            client_id=request.args["client_id"],
+            redirect_uri=request.args["redirect_uri"],
+            response_type=request.args["response_type"],
+            forgot_password_token=forgot_password_token))
+        if bool(password) and bool(confirm_password):
+            if password == confirm_password:
+                _user, _hashed_password = set_user_password(
+                    cursor, user_by_email(conn, token["email"]), password)
+                cursor.execute(
+                    "DELETE FROM forgot_password_tokens WHERE token=?",
+                    (forgot_password_token,))
+                flash("Password changed successfully!", "alert-success")
+                return login_page
+
+            flash("Passwords do not match!", "alert-danger")
+            return change_password_page
+
+        flash("Both the password and its confirmation MUST be provided!",
+              "alert-danger")
+        return change_password_page

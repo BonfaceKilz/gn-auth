@@ -113,6 +113,7 @@ def import_anonymous() -> Response:
         anon_id = UUID(request.json.get("anon_id"))#type: ignore[union-attr]
         anon_colls = user_collections(redisconn, User(
             anon_id, "anon@ymous.user", "Anonymous User"))
+        anon_colls = tuple(coll for coll in anon_colls if coll['num_members'] > 0)
         save_collections(
             redisconn,
             token.user,

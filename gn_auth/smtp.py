@@ -41,8 +41,8 @@ def build_email_message(# pylint: disable=[too-many-arguments]
 
 
 def send_message(# pylint: disable=[too-many-arguments]
-        smtp_user: str,# pylint: disable=[unused-argument]
-        smtp_passwd: str,# pylint: disable=[unused-argument]
+        smtp_user: str,
+        smtp_passwd: str,
         message: EmailMessage,
         host: str = "",
         port: int = 587,
@@ -54,4 +54,8 @@ def send_message(# pylint: disable=[too-many-arguments]
     logging.debug("Email to send:\n******\n%s\n******\n", message.as_string())
     with smtplib.SMTP(host, port, local_hostname, timeout, source_address) as conn:
         conn.ehlo()
+        if bool(smtp_user) and bool(smtp_passwd):
+            conn.starttls()
+            conn.login(smtp_user, smtp_passwd)
+
         conn.send_message(message)

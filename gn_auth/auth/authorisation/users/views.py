@@ -448,7 +448,8 @@ def forgot_password():
                                    request.args["client_id"],
                                    request.args["redirect_uri"],
                                    request.args["response_type"])
-        return render_template("users/forgot-password-token-send-success.html")
+        return render_template("users/forgot-password-token-send-success.html",
+                               email=form["email"])
 
 
 @users.route("/change-password/<forgot_password_token>", methods=["GET", "POST"])

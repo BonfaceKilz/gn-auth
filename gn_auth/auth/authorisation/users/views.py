@@ -152,8 +152,8 @@ def send_verification_email(
                      timedelta(
                          minutes=expiration_minutes)).timestamp())
             })
-        send_message(smtp_user=current_app.config["SMTP_USER"],
-                     smtp_passwd=current_app.config["SMTP_PASSWORD"],
+        send_message(smtp_user=current_app.config.get("SMTP_USER", ""),
+                     smtp_passwd=current_app.config.get("SMTP_PASSWORD", ""),
                      message=build_email_message(
                          from_address=current_app.config["EMAIL_ADDRESS"],
                          to_addresses=(user_address(user),),

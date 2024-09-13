@@ -84,6 +84,16 @@ def create_resource(
              resource_name,
              str(resource.resource_category.resource_category_id),
              1 if resource.public else 0))
+        # TODO: @fredmanglis,@rookie101
+        # 1. Move the actions below into a (the?) hooks system
+        # 2. Do more checks: A resource can have varying hooks depending on type
+        #    e.g. if mRNA, pheno or geno resource, assign:
+        #           - "resource-owner"
+        #         if inbredset-group, assign:
+        #           - "resource-owner",
+        #           - "inbredset-group-owner" etc.
+        #         if resource is of type "group", assign:
+        #           - group-leader
         cursor.execute("INSERT INTO resource_ownership (group_id, resource_id) "
                        "VALUES (?, ?)",
                        (str(group.group_id), str(resource.resource_id)))

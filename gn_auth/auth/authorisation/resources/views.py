@@ -40,6 +40,7 @@ from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, user_by_id, user_by_email
 
 from .checks import authorised_for
+from .inbredset.views import popbp
 from .errors import MissingGroupError
 from .groups.models import Group, user_group
 from .models import (
@@ -50,6 +51,7 @@ from .models import (
     get_resource_id)
 
 resources = Blueprint("resources", __name__)
+resources.register_blueprint(popbp, url_prefix="/")
 
 @resources.route("/categories", methods=["GET"])
 @require_oauth("profile group resource")

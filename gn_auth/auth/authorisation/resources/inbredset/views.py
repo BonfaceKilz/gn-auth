@@ -4,9 +4,10 @@ from flask import jsonify, Response, Blueprint
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.db.sqlite3 import with_db_connection
 
-iset = Blueprint("inbredset", __name__)
+popbp = Blueprint("populations", __name__)
 
-@iset.route("/resource-id/<int:speciesid>/<int:inbredsetid>")
+@popbp.route("/populations/resource-id/<int:speciesid>/<int:inbredsetid>",
+            methods=["GET"])
 def resource_id_by_inbredset_id(speciesid: int, inbredsetid: int) -> Response:
     """Retrieve the resource ID for resource attached to the inbredset."""
     def __res_by_iset_id__(conn):

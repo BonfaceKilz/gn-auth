@@ -40,13 +40,14 @@ from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
 from gn_auth.auth.authentication.users import User, user_by_id, user_by_email
 
 from .checks import authorised_for
+from .errors import MissingGroupError
+from .groups.models import Group, user_group
 from .models import (
     Resource, resource_data, resource_by_id, public_resources,
     resource_categories, assign_resource_user, link_data_to_resource,
     unassign_resource_user, resource_category_by_id, user_roles_on_resources,
     unlink_data_from_resource, create_resource as _create_resource,
     get_resource_id)
-from .groups.models import Group
 
 resources = Blueprint("resources", __name__)
 
@@ -68,13 +69,20 @@ def create_resource() -> Response:
         resource_name = form.get("resource_name")
         resource_category_id = UUID(form.get("resource_category"))
         db_uri = app.config["AUTH_DB"]
-        with db.connection(db_uri) as conn:
+        with (db.connection(db_uri) as conn,
+              db.cursor(conn) as cursor):
             try:
+                group = user_group(conn, the_token.user).maybe(
+                    False, lambda grp: grp)# type: ignore[misc, arg-type]
+                if not group:
+                    raise MissingGroupError(# Not all resources require an owner group
+                        "User with no group cannot create a resource.")
                 resource = _create_resource(
-                    conn,
+                    cursor,
                     resource_name,
                     resource_category_by_id(conn, resource_category_id),
                     the_token.user,
+                    group,
                     (form.get("public") == "on"))
                 return jsonify(asdict(resource))
             except sqlite3.IntegrityError as sql3ie:

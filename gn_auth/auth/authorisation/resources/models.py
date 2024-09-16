@@ -17,7 +17,7 @@ from gn_auth.auth.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
 from .base import Resource, ResourceCategory
-from .groups.models import Group, user_group, is_group_leader
+from .groups.models import Group, is_group_leader
 from .mrna import (
     resource_data as mrna_resource_data,
     attach_resources_data as mrna_attach_resources_data,
@@ -33,8 +33,6 @@ from .phenotype import (
     attach_resources_data as phenotype_attach_resources_data,
     link_data_to_resource as phenotype_link_data_to_resource,
     unlink_data_from_resource as phenotype_unlink_data_from_resource)
-
-from .errors import MissingGroupError
 
 def __assign_resource_owner_role__(cursor, resource, user):
     """Assign `user` the 'Resource Owner' role for `resource`."""
@@ -66,38 +64,36 @@ def resource_from_dbrow(row: sqlite3.Row):
 @authorised_p(("group:resource:create-resource",),
               error_description="Insufficient privileges to create a resource",
               oauth2_scope="profile resource")
-def create_resource(
-        conn: db.DbConnection, resource_name: str,
-        resource_category: ResourceCategory, user: User,
-        public: bool) -> Resource:
+def create_resource(# pylint: disable=[too-many-arguments]
+        cursor: sqlite3.Cursor,
+        resource_name: str,
+        resource_category: ResourceCategory,
+        user: User,
+        group: Group,
+        public: bool
+) -> Resource:
     """Create a resource item."""
-    with db.cursor(conn) as cursor:
-        group = user_group(conn, user).maybe(
-            False, lambda grp: grp)# type: ignore[misc, arg-type]
-        if not group:
-            raise MissingGroupError(# Not all resources require an owner group
-                "User with no group cannot create a resource.")
-        resource = Resource(uuid4(), resource_name, resource_category, public)
-        cursor.execute(
-            "INSERT INTO resources VALUES (?, ?, ?, ?)",
-            (str(resource.resource_id),
-             resource_name,
-             str(resource.resource_category.resource_category_id),
-             1 if resource.public else 0))
-        # TODO: @fredmanglis,@rookie101
-        # 1. Move the actions below into a (the?) hooks system
-        # 2. Do more checks: A resource can have varying hooks depending on type
-        #    e.g. if mRNA, pheno or geno resource, assign:
-        #           - "resource-owner"
-        #         if inbredset-group, assign:
-        #           - "resource-owner",
-        #           - "inbredset-group-owner" etc.
-        #         if resource is of type "group", assign:
-        #           - group-leader
-        cursor.execute("INSERT INTO resource_ownership (group_id, resource_id) "
-                       "VALUES (?, ?)",
-                       (str(group.group_id), str(resource.resource_id)))
-        __assign_resource_owner_role__(cursor, resource, user)
+    resource = Resource(uuid4(), resource_name, resource_category, public)
+    cursor.execute(
+        "INSERT INTO resources VALUES (?, ?, ?, ?)",
+        (str(resource.resource_id),
+         resource_name,
+         str(resource.resource_category.resource_category_id),
+         1 if resource.public else 0))
+    # TODO: @fredmanglis,@rookie101
+    # 1. Move the actions below into a (the?) hooks system
+    # 2. Do more checks: A resource can have varying hooks depending on type
+    #    e.g. if mRNA, pheno or geno resource, assign:
+    #           - "resource-owner"
+    #         if inbredset-group, assign:
+    #           - "resource-owner",
+    #           - "inbredset-group-owner" etc.
+    #         if resource is of type "group", assign:
+    #           - group-leader
+    cursor.execute("INSERT INTO resource_ownership (group_id, resource_id) "
+                   "VALUES (?, ?)",
+                   (str(group.group_id), str(resource.resource_id)))
+    __assign_resource_owner_role__(cursor, resource, user)
 
     return resource
 

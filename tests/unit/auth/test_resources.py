@@ -47,11 +47,11 @@ def test_create_resource(# pylint: disable=[too-many-arguments, unused-argument]
             user,
             tuple(client for client in clients if client.user == user)[0]))
     conn, _group, _users = fxtr_users_in_group
-    resource = create_resource(
-        conn, "test_resource", resource_category, user, False)
-    assert resource == expected
 
     with db.cursor(conn) as cursor:
+        resource = create_resource(
+            cursor, "test_resource", resource_category, user, _group, False)
+        assert resource == expected
         # Cleanup
         cursor.execute(
             "DELETE FROM user_roles WHERE resource_id=?",
@@ -82,8 +82,15 @@ def test_create_resource_raises_for_unauthorised_users(
             tuple(client for client in clients if client.user == user)[0]))
     conn, _group, _users = fxtr_users_in_group
     with pytest.raises(AuthorisationError):
-        assert create_resource(
-            conn, "test_resource", resource_category, user, False) == expected
+        with db.cursor(conn) as cursor:
+            assert create_resource(
+                cursor,
+                "test_resource",
+                resource_category,
+                user,
+                _group,
+                False
+            ) == expected
 
 def sort_key_resources(resource):
     """Sort-key for resources."""

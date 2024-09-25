@@ -17,6 +17,7 @@ from gn_auth.auth.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
 from .base import Resource, ResourceCategory
+from .common import assign_resource_owner_role
 from .groups.models import Group, is_group_leader
 from .mrna import (
     resource_data as mrna_resource_data,
@@ -33,21 +34,6 @@ from .phenotype import (
     attach_resources_data as phenotype_attach_resources_data,
     link_data_to_resource as phenotype_link_data_to_resource,
     unlink_data_from_resource as phenotype_unlink_data_from_resource)
-
-def __assign_resource_owner_role__(cursor, resource, user):
-    """Assign `user` the 'Resource Owner' role for `resource`."""
-    cursor.execute("SELECT * FROM roles WHERE role_name='resource-owner'")
-    role = cursor.fetchone()
-    cursor.execute(
-        "INSERT INTO user_roles "
-        "VALUES (:user_id, :role_id, :resource_id) "
-        "ON CONFLICT (user_id, role_id, resource_id) DO NOTHING",
-        {
-            "user_id": str(user.user_id),
-            "role_id": role["role_id"],
-            "resource_id": str(resource.resource_id)
-        })
-
 
 def resource_from_dbrow(row: sqlite3.Row):
     """Convert an SQLite3 resultset row into a resource."""
@@ -93,7 +79,7 @@ def create_resource(# pylint: disable=[too-many-arguments]
     cursor.execute("INSERT INTO resource_ownership (group_id, resource_id) "
                    "VALUES (?, ?)",
                    (str(group.group_id), str(resource.resource_id)))
-    __assign_resource_owner_role__(cursor, resource, user)
+    assign_resource_owner_role(cursor, resource.resource_id, user.user_id)
 
     return resource
 

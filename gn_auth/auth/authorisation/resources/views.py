@@ -41,6 +41,7 @@ from gn_auth.auth.authentication.users import User, user_by_id, user_by_email
 
 from .checks import authorised_for
 from .inbredset.views import popbp
+from .genotypes.views import genobp
 from .errors import MissingGroupError
 from .groups.models import Group, user_group
 from .models import (
@@ -52,6 +53,7 @@ from .models import (
 
 resources = Blueprint("resources", __name__)
 resources.register_blueprint(popbp, url_prefix="/")
+resources.register_blueprint(genobp, url_prefix="/")
 
 @resources.route("/categories", methods=["GET"])
 @require_oauth("profile group resource")

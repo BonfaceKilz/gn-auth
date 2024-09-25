@@ -5,9 +5,8 @@ from typing import Optional, Sequence
 import sqlite3
 
 import gn_auth.auth.db.sqlite3 as db
-
-from .base import Resource
-from .data import __attach_data__
+from gn_auth.auth.authorisation.resources.base import Resource
+from gn_auth.auth.authorisation.resources.data import __attach_data__
 
 
 def resource_data(
@@ -29,7 +28,7 @@ def link_data_to_resource(
         conn: db.DbConnection,
         resource: Resource,
         data_link_id: uuid.UUID) -> dict:
-    """Link Genotype data with a resource."""
+    """Link Genotype data with a resource using the GUI."""
     with db.cursor(conn) as cursor:
         params = {
             "resource_id": str(resource.resource_id),
@@ -67,3 +66,42 @@ def attach_resources_data(
         f"WHERE gr.resource_id IN ({placeholders})",
         tuple(str(resource.resource_id) for resource in resources))
     return __attach_data__(cursor.fetchall(), resources)
+
+
+def insert_and_link_data_to_resource(
+        cursor,
+        resource_id: uuid.UUID,
+        species_id: int,
+        population_id: int,
+        dataset_id: int,
+        dataset_name: str,
+        dataset_fullname: str,
+        dataset_shortname: str
+) -> dict:
+    """Link the genotype identifier data to the genotype resource."""
+    params = {
+        "resource_id": str(resource_id),
+        "data_link_id": str(uuid.uuid4()),
+        "species_id": species_id,
+        "population_id": population_id,
+        "dataset_id": dataset_id,
+        "dataset_name": dataset_name,
+        "dataset_fullname": dataset_fullname,
+        "dataset_shortname": dataset_shortname
+    }
+    cursor.execute(
+        "INSERT INTO linked_genotype_data "
+        "VALUES ("
+        ":data_link_id,"
+        ":species_id,"
+        ":population_id,"
+        ":dataset_id,"
+        ":dataset_name,"
+        ":dataset_fullname,"
+        ":dataset_shortname,"
+        ")",
+        params)
+    cursor.execute(
+        "INSERT INTO genotype_resources VALUES (:resource_id, :data_link_id)",
+        params)
+    return params

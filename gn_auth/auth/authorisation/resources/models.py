@@ -24,7 +24,7 @@ from .mrna import (
     attach_resources_data as mrna_attach_resources_data,
     link_data_to_resource as mrna_link_data_to_resource,
     unlink_data_from_resource as mrna_unlink_data_from_resource)
-from .genotype import (
+from .genotypes.models import (
     resource_data as genotype_resource_data,
     attach_resources_data as genotype_attach_resources_data,
     link_data_to_resource as genotype_link_data_to_resource,

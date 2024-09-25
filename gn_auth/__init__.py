@@ -8,6 +8,7 @@ from flask import Flask
 from flask_cors import CORS
 from authlib.jose import JsonWebKey
 
+from gn_auth import hooks
 from gn_auth.misc_views import misc
 from gn_auth.auth.views import oauth2
 
@@ -87,5 +88,6 @@ def create_app(
     app.register_blueprint(oauth2, url_prefix="/auth")
 
     register_error_handlers(app)
+    hooks.register_hooks(app)
 
     return app

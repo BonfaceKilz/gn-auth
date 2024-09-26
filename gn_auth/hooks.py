@@ -1,14 +1,19 @@
+"""Authorisation hooks implementation"""
+import functools
 from typing import List
+
 from flask import request_finished
 from flask import request, current_app
+
 from gn_auth.auth.db import sqlite3 as db
-import functools
 
 def register_hooks(app):
+    """Initialise hooks system on the application."""
     request_finished.connect(edu_domain_hook, app)
 
 
 def handle_register_request(func):
+    """Decorator for handling user registration hooks."""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if request.method == "POST" and request.endpoint == "oauth2.users.register_user":
@@ -19,7 +24,8 @@ def handle_register_request(func):
 
 
 @handle_register_request
-def edu_domain_hook(sender, response, **extra):
+def edu_domain_hook(_sender, response, **_extra):
+    """Hook to run whenever a user with a `.edu` domain registers."""
     if response.status_code >= 400:
         return
     data = request.get_json()
@@ -30,6 +36,7 @@ def edu_domain_hook(sender, response, **extra):
 
 
 def apply_edu_role(email):
+    """Assign 'hook-role-from-edu-domain' to user."""
     with db.connection(current_app.config["AUTH_DB"]) as conn:
         with db.cursor(conn) as cursor:
             cursor.execute("SELECT user_id FROM users WHERE email= ?", (email,) )

@@ -22,8 +22,8 @@ from gn_auth.auth.authorisation.roles.models import (
 
 from gn_auth.auth.authorisation.resources.groups.models import (
     Group, save_group, add_resources_to_group)
-from gn_auth.auth.authorisation.resources.models import (
-    Resource, ResourceCategory, __assign_resource_owner_role__)
+from gn_auth.auth.authorisation.resources.common import assign_resource_owner_role
+from gn_auth.auth.authorisation.resources.models import Resource, ResourceCategory
 
 
 class DataNotFound(Exception):
@@ -412,7 +412,8 @@ def entry(authdbpath, mysqldburi):
                 assign_data_to_resource(
                     authconn, bioconn, resource, the_admin_group)
                 with authdb.cursor(authconn) as cursor:
-                    __assign_resource_owner_role__(cursor, resource, admin)
+                    assign_resource_owner_role(
+                        cursor, resource.resource_id, admin.user_id)
     except DataNotFound as dnf:
         print(dnf.args[0], file=sys.stderr)
         sys.exit(1)

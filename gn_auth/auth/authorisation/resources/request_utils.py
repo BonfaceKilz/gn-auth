@@ -10,7 +10,7 @@ def check_form(form, *fields) -> Either:
             return errors + (f"Missing `{field}` value.",)
         return errors
 
-    errors = reduce(__check_field__, fields, tuple())
+    errors: tuple[str, ...] = reduce(__check_field__, fields, tuple())
     if len(errors) > 0:
         return Left({
             "error": "Invalid request data!",

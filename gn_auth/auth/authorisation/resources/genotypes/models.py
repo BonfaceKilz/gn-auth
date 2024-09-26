@@ -68,9 +68,10 @@ def attach_resources_data(
     return __attach_data__(cursor.fetchall(), resources)
 
 
-def insert_and_link_data_to_resource(
+def insert_and_link_data_to_resource(# pylint: disable=[too-many-arguments]
         cursor,
         resource_id: uuid.UUID,
+        group_id: uuid.UUID,
         species_id: int,
         population_id: int,
         dataset_id: int,
@@ -81,6 +82,7 @@ def insert_and_link_data_to_resource(
     """Link the genotype identifier data to the genotype resource."""
     params = {
         "resource_id": str(resource_id),
+        "group_id": str(group_id),
         "data_link_id": str(uuid.uuid4()),
         "species_id": species_id,
         "population_id": population_id,
@@ -93,12 +95,13 @@ def insert_and_link_data_to_resource(
         "INSERT INTO linked_genotype_data "
         "VALUES ("
         ":data_link_id,"
+        ":group_id,"
         ":species_id,"
         ":population_id,"
         ":dataset_id,"
         ":dataset_name,"
         ":dataset_fullname,"
-        ":dataset_shortname,"
+        ":dataset_shortname"
         ")",
         params)
     cursor.execute(

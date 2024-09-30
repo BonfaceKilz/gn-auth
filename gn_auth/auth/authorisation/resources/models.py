@@ -16,7 +16,7 @@ from gn_auth.auth.authorisation.checks import authorised_p
 from gn_auth.auth.errors import NotFoundError, AuthorisationError
 
 from .checks import authorised_for
-from .base import Resource, ResourceCategory
+from .base import Resource, ResourceCategory, resource_from_dbrow
 from .common import assign_resource_owner_role
 from .groups.models import Group, is_group_leader
 from .mrna import (
@@ -34,17 +34,6 @@ from .phenotype import (
     attach_resources_data as phenotype_attach_resources_data,
     link_data_to_resource as phenotype_link_data_to_resource,
     unlink_data_from_resource as phenotype_unlink_data_from_resource)
-
-def resource_from_dbrow(row: sqlite3.Row):
-    """Convert an SQLite3 resultset row into a resource."""
-    return Resource(
-        resource_id=UUID(row["resource_id"]),
-        resource_name=row["resource_name"],
-        resource_category=ResourceCategory(
-            UUID(row["resource_category_id"]),
-            row["resource_category_key"],
-            row["resource_category_description"]),
-        public=bool(int(row["public"])))
 
 
 @authorised_p(("group:resource:create-resource",),

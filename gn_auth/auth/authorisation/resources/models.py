@@ -29,7 +29,7 @@ from .genotypes.models import (
     attach_resources_data as genotype_attach_resources_data,
     link_data_to_resource as genotype_link_data_to_resource,
     unlink_data_from_resource as genotype_unlink_data_from_resource)
-from .phenotype import (
+from .phenotypes.models import (
     resource_data as phenotype_resource_data,
     attach_resources_data as phenotype_attach_resources_data,
     link_data_to_resource as phenotype_link_data_to_resource,

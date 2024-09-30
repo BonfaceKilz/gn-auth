@@ -133,10 +133,10 @@ def user_roles(conn: db.DbConnection, user: User) -> Sequence[dict]:
     return tuple()
 
 
-def user_resource_roles(
+def user_roles_on_resource(
         conn: db.DbConnection,
-        user: User,
-        resource: Resource
+        user_id: UUID,
+        resource_id: UUID
 ) -> tuple[Role, ...]:
     """Retrieve all roles assigned to a user for a particular resource."""
     with db.cursor(conn) as cursor:
@@ -147,10 +147,20 @@ def user_resource_roles(
             "INNER JOIN role_privileges AS rp ON r.role_id=rp.role_id "
             "INNER JOIN privileges AS p ON rp.privilege_id=p.privilege_id "
             "WHERE ur.user_id=? AND ur.resource_id=?",
-            (str(user.user_id), str(resource.resource_id)))
+            (str(user_id), str(resource_id)))
 
         return db_rows_to_roles(cursor.fetchall())
     return tuple()
+
+
+def user_resource_roles(
+        conn: db.DbConnection,
+        user: User,
+        resource: Resource
+) -> tuple[Role, ...]:
+    "Retrieve roles a user has on a particular resource."
+    # TODO: Temporary placeholder to prevent system from breaking.
+    return user_roles_on_resource(conn, user.user_id, resource.resource_id)
 
 
 def user_role(conn: db.DbConnection, user: User, role_id: UUID) -> Either:

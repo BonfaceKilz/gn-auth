@@ -30,6 +30,7 @@ from ....authentication.oauth2.models.oauth2client import (
     save_client,
     OAuth2Client,
     oauth2_clients,
+    update_client_attribute,
     client as oauth2_client,
     delete_client as _delete_client)
 from ....authentication.users import (
@@ -321,3 +322,36 @@ def delete_client():
            "successfully."),
           "alert-success")
     return redirect(url_for("oauth2.admin.list_clients"))
+
+
+@admin.route("/clients/<uuid:client_id>/change-secret", methods=["GET", "POST"])
+@is_admin
+def change_client_secret(client_id: uuid.UUID):
+    def __no_client__():
+        # Calling the function causes the flash to be evaluated
+        # flash("No such client was found!", "alert-danger")
+        return redirect(url_for("oauth2.admin.list_clients"))
+
+    with db.connection(app.config["AUTH_DB"]) as conn:
+        if request.method == "GET":
+            return oauth2_client(
+                conn, client_id=client_id
+            ).maybe(__no_client__(), lambda _client: render_template(
+                "admin/confirm-change-client-secret.html",
+                client=_client
+            ))
+
+        _raw = random_string()
+        return oauth2_client(
+            conn, client_id=client_id
+        ).then(
+            lambda _client: save_client(
+                conn,
+                update_client_attribute(
+                    _client, "client_secret", hash_password(_raw)))
+        ).then(
+            lambda _client: render_template(
+                "admin/registered-client.html",
+                client=_client,
+                client_secret=_raw)
+        ).maybe(__no_client__(), lambda resp: resp)

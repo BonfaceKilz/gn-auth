@@ -15,7 +15,7 @@
       <th>Client Name</th>
       <th>Default Redirect URI</th>
       <th>Owner</th>
-      <th colspan="2">Actions</th>
+      <th colspan="3">Actions</th>
     </tr>
   </thead>
 
@@ -42,6 +42,14 @@
 		 title"Delete client {{client.client_metadata.client_name}}"
 		 class="btn btn-danger" />
 	</form>
+      </td>
+      <td>
+        <a href="{{url_for('oauth2.admin.change_client_secret',
+                 client_id=client.client_id)}}"
+           title="Change the client secret!"
+           class="btn btn-danger">
+          Change Secret
+        </a>
       </td>
     </tr>
     {%else%}

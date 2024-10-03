@@ -3,9 +3,9 @@ import json
 import logging
 import datetime
 from uuid import UUID
-from dataclasses import dataclass
 from functools import cached_property
-from typing import Sequence, Optional
+from dataclasses import asdict, dataclass
+from typing import Any, Sequence, Optional
 
 import requests
 from requests.exceptions import JSONDecodeError
@@ -289,3 +289,22 @@ def delete_client(
         cursor.execute("DELETE FROM oauth2_tokens WHERE client_id=?", params)
         cursor.execute("DELETE FROM oauth2_clients WHERE client_id=?", params)
         return the_client
+
+
+def update_client_attribute(
+        client: OAuth2Client, attribute: str, value: Any) -> OAuth2Client:
+    """Return a new OAuth2Client with the given attribute updated/changed."""
+    attrs = {
+        attr: type(value)
+        for attr, value in asdict(client).items()
+        if attr != "client_id"
+    }
+    assert (
+        attribute in attrs.keys() and isinstance(value, attrs[attribute])), (
+            "Invalid attribute/value provided!")
+    return OAuth2Client(
+        client_id=client.client_id,
+        **{
+            attr: (value if attr==attribute else getattr(client, attr))
+            for attr in attrs
+        })

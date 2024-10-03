@@ -411,9 +411,18 @@ def resource_roles(resource_id: UUID) -> Response:
                     "ON rp.privilege_id=p.privilege_id "
                     "WHERE rr.resource_id=? AND rr.role_created_by=?",
                     (str(resource_id), str(_token.user.user_id)))
-                results = cursor.fetchall()
+                user_created = db_rows_to_roles(cursor.fetchall())
 
-            return db_rows_to_roles(results)
+                cursor.execute(
+                    "SELECT ur.user_id, ur.resource_id, r.*, p.* FROM user_roles AS ur "
+                    "INNER JOIN roles AS r ON ur.role_id=r.role_id "
+                    "INNER JOIN role_privileges AS rp ON r.role_id=rp.role_id "
+                    "INNER JOIN privileges AS p ON rp.privilege_id=p.privilege_id "
+                    "WHERE resource_id=? AND user_id=?",
+                    (str(resource_id), str(_token.user.user_id)))
+                assigned_to_user = db_rows_to_roles(cursor.fetchall())
+
+            return assigned_to_user + user_created
 
         return jsonify(with_db_connection(__roles__))
 

@@ -133,8 +133,10 @@ def user_resources(conn: db.DbConnection, user: User) -> Sequence[Resource]:
     """List the resources available to the user"""
     with db.cursor(conn) as cursor:
         cursor.execute(
-            ("SELECT r.*, rc.resource_category_key, "
-             "rc.resource_category_description  FROM user_roles AS ur "
+            ("SELECT DISTINCT(r.resource_id), r.resource_name,  "
+             "r.resource_category_id, r.public, rc.resource_category_key, "
+             "rc.resource_category_description "
+             "FROM user_roles AS ur "
              "INNER JOIN resources AS r ON ur.resource_id=r.resource_id "
              "INNER JOIN resource_categories AS rc "
              "ON r.resource_category_id=rc.resource_category_id "

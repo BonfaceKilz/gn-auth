@@ -197,7 +197,7 @@ def register_client():
     if request.method == "GET":
         return render_template(
             "admin/register-client.html",
-            scope=app.config["OAUTH2_SCOPE"],
+            scope=app.config["OAUTH2_SCOPES_SUPPORTED"],
             users=with_db_connection(__list_users__),
             granttypes=_FORM_GRANT_TYPES_,
             current_user=session.session_user())
@@ -262,7 +262,7 @@ def view_client(client_id: uuid.UUID):
     return render_template(
         "admin/view-oauth2-client.html",
         client=with_db_connection(partial(oauth2_client, client_id=client_id)),
-        scope=app.config["OAUTH2_SCOPE"],
+        scope=app.config["OAUTH2_SCOPES_SUPPORTED"],
         granttypes=_FORM_GRANT_TYPES_)
 
 

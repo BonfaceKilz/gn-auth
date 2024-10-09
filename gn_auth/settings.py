@@ -21,9 +21,11 @@ REDIS_URI = "redis://localhost:6379/0"
 REDIS_JOB_QUEUE = "GN_AUTH::job-queue"
 
 # OAuth2 settings
-OAUTH2_SCOPE = (
-    "profile", "group", "role", "resource", "user", "masquerade",
-    "introspect")
+OAUTH2_SCOPES_SUPPORTED = (
+    # Used by Authlib's `authlib.integrations.flask_oauth2.AuthorizationServer`
+    # class to setup the supported scopes.
+    "profile", "group", "role", "resource", "register-client", "user",
+    "masquerade", "introspect", "migrate-data")
 
 CORS_ORIGINS = "*"
 CORS_HEADERS = [

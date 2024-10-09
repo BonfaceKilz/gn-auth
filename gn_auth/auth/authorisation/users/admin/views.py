@@ -98,7 +98,7 @@ def login():
                     expires=(
                         datetime.now(tz=timezone.utc) + timedelta(minutes=int(
                             app.config.get("SESSION_EXPIRY_MINUTES", 10)))))
-                return redirect(url_for(next_uri))
+                return redirect(url_for(next_uri, **dict(request.args)))
             raise NotFoundError(error_message)
     except NotFoundError as _nfe:
         flash(error_message, "alert-danger")

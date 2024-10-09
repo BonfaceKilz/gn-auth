@@ -1,6 +1,6 @@
 """UI utilities for the auth system."""
 from functools import wraps
-from flask import flash, url_for, redirect
+from flask import flash, request, url_for, redirect
 
 from gn_auth.session import logged_in, session_user, clear_session_info
 from gn_auth.auth.authorisation.resources.system.models import (
@@ -24,5 +24,5 @@ def is_admin(func):
         flash("Expected a system administrator.", "alert-danger")
         flash("You have been logged out of the system.", "alert-info")
         clear_session_info()
-        return redirect(url_for("oauth2.admin.login"))
+        return redirect(url_for("oauth2.admin.login", **dict(request.args)))
     return __admin__

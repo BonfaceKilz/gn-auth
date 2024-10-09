@@ -31,7 +31,8 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
                 for key, value in tokendata.items()
             },
             "sub": str(tokendata["sub"]),
-            "jti": str(uuid.uuid4())
+            "jti": str(uuid.uuid4()),
+            "oauth2_client_id": str(client.client_id)
         }
 
 

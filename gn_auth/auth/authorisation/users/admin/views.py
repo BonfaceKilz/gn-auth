@@ -327,6 +327,7 @@ def delete_client():
 @admin.route("/clients/<uuid:client_id>/change-secret", methods=["GET", "POST"])
 @is_admin
 def change_client_secret(client_id: uuid.UUID):
+    """Enable changing of a client's secret."""
     def __no_client__():
         # Calling the function causes the flash to be evaluated
         # flash("No such client was found!", "alert-danger")

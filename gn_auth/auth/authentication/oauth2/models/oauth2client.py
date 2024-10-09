@@ -292,7 +292,10 @@ def delete_client(
 
 
 def update_client_attribute(
-        client: OAuth2Client, attribute: str, value: Any) -> OAuth2Client:
+        client: OAuth2Client,# pylint: disable=[redefined-outer-name]
+        attribute: str,
+        value: Any
+) -> OAuth2Client:
     """Return a new OAuth2Client with the given attribute updated/changed."""
     attrs = {
         attr: type(value)

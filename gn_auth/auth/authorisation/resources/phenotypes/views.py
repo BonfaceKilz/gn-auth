@@ -14,6 +14,7 @@ from .models import all_linked_resources, individual_linked_resource
 phenobp = Blueprint("phenotypes", __name__)
 
 @phenobp.route("/phenotypes/individual/linked-resource", methods=["POST"])
+@require_oauth("profile group resource")
 def get_individual_linked_resource():
     """Get the linked resource for a particular phenotype within the dataset.
 
@@ -54,6 +55,7 @@ def get_individual_linked_resource():
 
 
 @phenobp.route("/phenotypes/linked-resources", methods=["POST"])
+@require_oauth("profile group resource")
 def get_all_linked_resources():
     """Get all the linked resources for all phenotypes within a dataset.
 

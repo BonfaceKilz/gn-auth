@@ -28,22 +28,17 @@ def masquerade() -> Response:
 
         masq_user = with_db_connection(partial(
             user_by_id, user_id=masqueradee_id))
+
         def __masq__(conn):
             new_token = masquerade_as(conn, original_token=token, masqueradee=masq_user)
             return new_token
-        def __dump_token__(tok):
-            return {
-                key: value for key, value in asdict(tok).items()
-                if key in ("access_token", "refresh_token", "expires_in",
-                           "token_type")
-            }
+
         return jsonify({
             "original": {
-                "user": asdict(token.user),
-                "token": __dump_token__(token)
+                "user": asdict(token.user)
             },
             "masquerade_as": {
                 "user": asdict(masq_user),
-                "token": __dump_token__(with_db_connection(__masq__))
+                "token": with_db_connection(__masq__)
             }
         })

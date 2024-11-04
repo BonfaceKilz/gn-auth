@@ -1,6 +1,7 @@
 """Application initialisation module."""
 import os
 import sys
+import logging
 from pathlib import Path
 from typing import Optional, Callable
 
@@ -52,10 +53,38 @@ def load_secrets_conf(app: Flask) -> None:
         app.config.from_pyfile(secretsfile)
 
 
-def create_app(
-        config: Optional[dict] = None,
-        setup_logging: Callable[[Flask], None] = lambda appl: None
-) -> Flask:
+def dev_loggers(appl: Flask) -> None:
+    """Setup the logging handlers."""
+    stderr_handler = logging.StreamHandler(stream=sys.stderr)
+    appl.logger.addHandler(stderr_handler)
+
+    root_logger = logging.getLogger()
+    root_logger.addHandler(stderr_handler)
+    root_logger.setLevel(appl.config["LOGLEVEL"])
+
+
+def gunicorn_loggers(appl: Flask) -> None:
+    """Use gunicorn logging handlers for the application."""
+    logger = logging.getLogger("gunicorn.error")
+    appl.logger.handlers = logger.handlers
+    appl.logger.setLevel(logger.level)
+
+
+def setup_logging(appl: Flask) -> Callable[[Flask], None]:
+    """
+    Setup the loggers according to the WSGI server used to run the application.
+    """
+    # https://datatracker.ietf.org/doc/html/draft-coar-cgi-v11-03#section-4.1.17
+    # https://wsgi.readthedocs.io/en/latest/proposals-2.0.html#making-some-keys-required
+    # https://peps.python.org/pep-3333/#id4
+    software, *_version_and_comments = os.environ.get(
+        "SERVER_SOFTWARE", "").split('/')
+    if bool(software):
+        return gunicorn_loggers(appl)
+    return dev_loggers(appl)
+
+
+def create_app(config: Optional[dict] = None) -> Flask:
     """Create and return a new flask application."""
     app = Flask(__name__)
 

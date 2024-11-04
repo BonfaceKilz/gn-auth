@@ -8,6 +8,7 @@ from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant
 from authlib.oauth2.rfc7523.token import (
     JWTBearerTokenGenerator as _JWTBearerTokenGenerator)
 
+from gn_auth.debug import __pk__
 from gn_auth.auth.db.sqlite3 import with_db_connection
 from gn_auth.auth.authentication.users import user_by_id
 
@@ -75,7 +76,9 @@ class JWTBearerGrant(_JWTBearerGrant):
 
     def resolve_client_key(self, client, headers, payload):
         """Resolve client key to decode assertion data."""
-        return client.jwks().find_by_kid(headers["kid"])
+        keyset = client.jwks()
+        __pk__("THE KEYSET =======>", keyset.keys)
+        return keyset.find_by_kid(headers["kid"])
 
 
     def authenticate_user(self, subject):

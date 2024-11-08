@@ -13,7 +13,6 @@ from authlib.jose import KeySet, JsonWebKey
 from authlib.oauth2.rfc6749 import ClientMixin
 from pymonad.maybe import Just, Maybe, Nothing
 
-from gn_auth.debug import __pk__, getLogger
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import (User,
@@ -62,19 +61,10 @@ class OAuth2Client(ClientMixin):
 
     def jwks(self) -> KeySet:
         """Return this client's KeySet."""
-        logger = getLogger(__name__)
         jwksuri = self.client_metadata.get("public-jwks-uri")
-        ### ----- DEBUG: Remove this section ----- ###
-        import os
-        from pathlib import Path
-        ca_bundle = Path(os.environ.get("REQUESTS_CA_BUNDLE"))
-        __pk__(f"{ca_bundle} exists?", ca_bundle.exists())
-        ### ----- DEBUG: Remove this section ----- ###
-        if not bool(__pk__(
-                f"CLIENT'S ({self.client_id}) JWKs URI =======> ", jwksuri)):
-            logger.debug("No Public JWKs URI set for client!")
-            return __pk__("Return empty KeySet since URI is not set =====>",
-                          KeySet([]))
+        if not bool(jwksuri):
+            logging.debug("No Public JWKs URI set for client!")
+            return KeySet([])
         try:
             ## IMPORTANT: This can cause a deadlock if the client is working in
             ##            single-threaded mode, i.e. can only serve one request
@@ -82,16 +72,15 @@ class OAuth2Client(ClientMixin):
             return KeySet([JsonWebKey.import_key(key)
                            for key in requests.get(jwksuri).json()["jwks"]])
         except requests.ConnectionError as _connerr:
-            logger.debug(
+            logging.debug(
                 "Could not connect to provided URI: %s", jwksuri, exc_info=True)
         except JSONDecodeError as _jsonerr:
-            logger.debug(
+            logging.debug(
                 "Could not convert response to JSON", exc_info=True)
         except Exception as _exc:# pylint: disable=[broad-except]
-            logger.debug(
+            logging.debug(
                 "Error retrieving the JWKs for the client.", exc_info=True)
-        return __pk__("Return empty KeySet after failure =====>",
-                      KeySet([]))
+        return KeySet([])
 
 
     def check_endpoint_auth_method(self, method: str, endpoint: str) -> bool:

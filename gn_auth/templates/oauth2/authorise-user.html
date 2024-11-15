@@ -6,8 +6,9 @@
 
 {%block content%}
 {{flash_messages()}}
-
-<form method="POST" action="{{url_for(
+<legend style="margin-top: 20px;">User Credentials</legend>
+<div class="container" style="min-width: 1250px;">
+<form method="POST" class="form-horizontal" action="{{url_for(
                             'oauth2.auth.authorise',
                             response_type=response_type,
                             client_id=client.client_id,
@@ -16,8 +17,6 @@
   <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
   <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
   <input type="hidden" name="client_id" value="{{client.client_id}}" />
-
-  <legend>User Credentials</legend>
   <div class="form-group">
     <label for="user:email" class="form-label">Email</label>
     <input type="email" name="user:email" id="user:email" required="required"
@@ -42,4 +41,5 @@
     {%endif%}
   </div>
 </form>
+</div>
 {%endblock%}

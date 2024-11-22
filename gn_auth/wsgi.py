@@ -1,15 +1,12 @@
 """Main entry point for project"""
-import os
 import sys
 import uuid
 import json
 from math import ceil
 from pathlib import Path
-from typing import Callable
 from datetime import datetime
 
 import click
-from flask import Flask
 from yoyo import get_backend, read_migrations
 
 from gn_auth import migrations

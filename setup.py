@@ -25,6 +25,7 @@ setup(author="Frederick M. Muriithi",
           "requests==2.25.1"
           "flask-cors==3.0.9"
           "xapian-bindings"
+          "gn-libs>=0.0.0"
       ],
       include_package_data=True,
       packages=find_packages(

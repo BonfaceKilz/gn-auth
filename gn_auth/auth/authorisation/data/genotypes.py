@@ -3,9 +3,9 @@ import uuid
 from dataclasses import asdict
 from typing import Iterable
 
+from gn_libs import mysqldb as gn3db
 from MySQLdb.cursors import DictCursor
 
-from gn_auth.auth.db import mariadb as gn3db
 from gn_auth.auth.db import sqlite3 as authdb
 
 from gn_auth.auth.authorisation.checks import authorised_p
@@ -23,7 +23,7 @@ def linked_genotype_data(conn: authdb.DbConnection) -> Iterable[dict]:
                   "group(s)."),
               oauth2_scope="profile group resource")
 def ungrouped_genotype_data(# pylint: disable=[too-many-arguments]
-        authconn: authdb.DbConnection, gn3conn: gn3db.DbConnection,
+        authconn: authdb.DbConnection, gn3conn: gn3db.Connection,
         search_query: str, selected: tuple[dict, ...] = tuple(),
         limit: int = 10000, offset: int = 0) -> tuple[
             dict, ...]:

@@ -6,10 +6,9 @@ import uuid
 from pathlib import Path
 
 import click
+from gn_libs import mysqldb as biodb
 
 import gn_auth.auth.db.sqlite3 as authdb
-
-from gn_auth.auth.db import mariadb as biodb
 
 from scripts.assign_data_to_default_admin import (
     sys_admins, admin_group, select_sys_admin)

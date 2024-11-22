@@ -11,6 +11,9 @@ from MySQLdb.cursors import DictCursor
 from authlib.integrations.flask_oauth2.errors import _HTTPException
 from flask import request, jsonify, Response, Blueprint, current_app as app
 
+
+from gn_libs import mysqldb as gn3db
+
 from gn_auth import jobs
 from gn_auth.commands import run_async_cmd
 
@@ -19,7 +22,6 @@ from gn_auth.auth.errors import InvalidData, NotFoundError
 from gn_auth.auth.authorisation.resources.groups.models import group_by_id
 
 from ...db import sqlite3 as db
-from ...db import mariadb as gn3db
 from ...db.sqlite3 import with_db_connection
 
 from ..checks import require_json

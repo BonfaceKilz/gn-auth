@@ -3,16 +3,16 @@ import uuid
 from dataclasses import asdict
 from typing import Any, Iterable
 
+from gn_libs import mysqldb as gn3db
 from MySQLdb.cursors import DictCursor
 
 from gn_auth.auth.db import sqlite3 as authdb
-from gn_auth.auth.db import mariadb as gn3db
 
 from gn_auth.auth.authorisation.checks import authorised_p
 from gn_auth.auth.authorisation.resources.groups.models import Group
 
 def linked_phenotype_data(
-        authconn: authdb.DbConnection, gn3conn: gn3db.DbConnection,
+        authconn: authdb.DbConnection, gn3conn: gn3db.Connection,
         species: str = "") -> Iterable[dict[str, Any]]:
     """Retrieve phenotype data linked to user groups."""
     authkeys = ("SpeciesId", "InbredSetId", "PublishFreezeId", "PublishXRefId")
@@ -53,7 +53,7 @@ def linked_phenotype_data(
                   "group(s)."),
               oauth2_scope="profile group resource")
 def ungrouped_phenotype_data(
-        authconn: authdb.DbConnection, gn3conn: gn3db.DbConnection):
+        authconn: authdb.DbConnection, gn3conn: gn3db.Connection):
     """Retrieve phenotype data that is not linked to any user group."""
     with gn3conn.cursor() as cursor:
         params = tuple(
@@ -83,7 +83,7 @@ def ungrouped_phenotype_data(
 
     return tuple()
 
-def __traits__(gn3conn: gn3db.DbConnection, params: tuple[dict, ...]) -> tuple[dict, ...]:
+def __traits__(gn3conn: gn3db.Connection, params: tuple[dict, ...]) -> tuple[dict, ...]:
     """An internal utility function. Don't use outside of this module."""
     if len(params) < 1:
         return tuple()
@@ -116,7 +116,7 @@ def __traits__(gn3conn: gn3db.DbConnection, params: tuple[dict, ...]) -> tuple[d
                   "group(s)."),
               oauth2_scope="profile group resource")
 def link_phenotype_data(
-        authconn:authdb.DbConnection, gn3conn: gn3db.DbConnection, group: Group,
+        authconn:authdb.DbConnection, gn3conn: gn3db.Connection, group: Group,
         traits: tuple[dict, ...]) -> dict:
     """Link phenotype traits to a user group."""
     with authdb.cursor(authconn) as cursor:

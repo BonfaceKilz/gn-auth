@@ -11,9 +11,9 @@ from datetime import datetime, timedelta
 import click
 import redis
 import requests
+from gn_libs import mysqldb as gn3db
 
 from gn_auth import jobs
-from gn_auth.auth.db import mariadb as gn3db
 from gn_auth.auth.db import sqlite3 as authdb
 from gn_auth.settings import SQL_URI, AUTH_DB
 from gn_auth.auth.authorisation.data.phenotypes import linked_phenotype_data

@@ -7,10 +7,10 @@ import logging
 from pathlib import Path
 
 import click
+from gn_libs import mysqldb as biodb
 from pymonad.maybe import Just, Maybe, Nothing
 from pymonad.tools import monad_from_none_or_value
 
-from gn_auth.auth.db import mariadb as biodb
 from gn_auth.auth.db import sqlite3 as authdb
 from gn_auth.auth.authentication.users import User
 from gn_auth.auth.authorisation.resources.groups.models import (

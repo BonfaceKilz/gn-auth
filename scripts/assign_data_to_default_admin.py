@@ -11,9 +11,8 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 import click
+from gn_libs import mysqldb as biodb
 from MySQLdb.cursors import DictCursor
-
-from gn_auth.auth.db import mariadb as biodb
 
 import gn_auth.auth.db.sqlite3 as authdb
 from gn_auth.auth.authentication.users import User

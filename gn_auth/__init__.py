@@ -70,7 +70,7 @@ def gunicorn_loggers(appl: Flask) -> None:
     appl.logger.setLevel(logger.level)
 
 
-def setup_logging(appl: Flask) -> Callable[[Flask], None]:
+def setup_logging(appl: Flask) -> None:
     """
     Setup the loggers according to the WSGI server used to run the application.
     """
@@ -80,8 +80,8 @@ def setup_logging(appl: Flask) -> Callable[[Flask], None]:
     software, *_version_and_comments = os.environ.get(
         "SERVER_SOFTWARE", "").split('/')
     if bool(software):
-        return gunicorn_loggers(appl)
-    return dev_loggers(appl)
+        gunicorn_loggers(appl)
+    dev_loggers(appl)
 
 
 def create_app(config: Optional[dict] = None) -> Flask:

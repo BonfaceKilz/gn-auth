@@ -18,27 +18,30 @@
   <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
   <input type="hidden" name="client_id" value="{{client.client_id}}" />
   <div class="form-group">
-    <label for="user:email" class="form-label">Email</label>
+    <label for="user:email" class="form-label col-xs-1">Email</label>
     <input type="email" name="user:email" id="user:email" required="required"
-	   class="form-control"/>
+	   class="controls col-xs-3" size="50"/>
   </div>
 
   <div class="form-group">
-    <label for="user:password" class="form-label">Password</label>
+    <label for="user:password" class="form-label col-xs-1">Password</label>
     <input type="password" name="user:password" id="user:password"
-	   required="required" class="form-control" />
+	   required="required" class="controls col-xs-3" size="50"/>
   </div>
 
   <div class="form-group">
-    <input type="submit" value="authorise" class="btn btn-primary" />
-    {%if display_forgot_password%}
-    <a href="{{url_for('oauth2.users.forgot_password',
-             client_id=client.client_id,
-             redirect_uri=redirect_uri,
-             response_type=response_type)}}"
-       title="Click here to change your password."
-       class="form-text text-danger">Forgot Password</a>
-    {%endif%}
+    <label for="authorise" class="form-label col-xs-1"></label>
+    <div class="controls col-xs-3">
+      <input type="submit" value="Log in" class="btn btn-primary col-2" style="margin-left: -15px;"/>
+      {%if display_forgot_password%}
+      <a href="{{url_for('oauth2.users.forgot_password',
+              client_id=client.client_id,
+              redirect_uri=redirect_uri,
+              response_type=response_type)}}"
+        title="Click here to change your password."
+        class="form-text text-danger col-2">Forgot Password</a>
+      {%endif%}
+    </div>
   </div>
 </form>
 </div>

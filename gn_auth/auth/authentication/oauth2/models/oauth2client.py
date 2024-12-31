@@ -1,6 +1,5 @@
 """OAuth2 Client model."""
 import json
-import logging
 import datetime
 from uuid import UUID
 from functools import cached_property
@@ -8,6 +7,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Sequence, Optional
 
 import requests
+from flask import current_app as app
 from requests.exceptions import JSONDecodeError
 from authlib.jose import KeySet, JsonWebKey
 from authlib.oauth2.rfc6749 import ClientMixin
@@ -65,7 +65,7 @@ class OAuth2Client(ClientMixin):
         jwksuri = self.client_metadata.get("public-jwks-uri")
         __pk__(f"PUBLIC JWKs link for client {self.client_id}", jwksuri)
         if not bool(jwksuri):
-            logging.debug("No Public JWKs URI set for client!")
+            app.logger.debug("No Public JWKs URI set for client!")
             return KeySet([])
         try:
             ## IMPORTANT: This can cause a deadlock if the client is working in
@@ -76,13 +76,13 @@ class OAuth2Client(ClientMixin):
                                    jwksuri,
                                    allow_redirects=True).json()["jwks"]])
         except requests.ConnectionError as _connerr:
-            logging.debug(
+            app.logger.debug(
                 "Could not connect to provided URI: %s", jwksuri, exc_info=True)
         except JSONDecodeError as _jsonerr:
-            logging.debug(
+            app.logger.debug(
                 "Could not convert response to JSON", exc_info=True)
         except Exception as _exc:# pylint: disable=[broad-except]
-            logging.debug(
+            app.logger.debug(
                 "Error retrieving the JWKs for the client.", exc_info=True)
         return KeySet([])
 

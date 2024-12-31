@@ -72,7 +72,9 @@ class OAuth2Client(ClientMixin):
             ##            single-threaded mode, i.e. can only serve one request
             ##            at a time.
             return KeySet([JsonWebKey.import_key(key)
-                           for key in requests.get(jwksuri).json()["jwks"]])
+                           for key in requests.get(
+                                   jwksuri,
+                                   allow_redirects=True).json()["jwks"]])
         except requests.ConnectionError as _connerr:
             logging.debug(
                 "Could not connect to provided URI: %s", jwksuri, exc_info=True)

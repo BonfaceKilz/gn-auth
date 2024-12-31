@@ -13,6 +13,7 @@ from authlib.jose import KeySet, JsonWebKey
 from authlib.oauth2.rfc6749 import ClientMixin
 from pymonad.maybe import Just, Maybe, Nothing
 
+from gn_auth.debug import __pk__
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.errors import NotFoundError
 from gn_auth.auth.authentication.users import (User,
@@ -62,6 +63,7 @@ class OAuth2Client(ClientMixin):
     def jwks(self) -> KeySet:
         """Return this client's KeySet."""
         jwksuri = self.client_metadata.get("public-jwks-uri")
+        __pk__(f"PUBLIC JWKs link for client {self.client_id}", jwksuri)
         if not bool(jwksuri):
             logging.debug("No Public JWKs URI set for client!")
             return KeySet([])

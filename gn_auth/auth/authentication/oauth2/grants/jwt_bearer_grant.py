@@ -2,8 +2,11 @@
 import uuid
 import time
 
+from typing import Optional
 from flask import current_app as app
 
+from authlib.jose import jwt
+from authlib.common.encoding import to_native
 from authlib.common.security import generate_token
 from authlib.oauth2.rfc7523.jwt_bearer import JWTBearerGrant as _JWTBearerGrant
 from authlib.oauth2.rfc7523.token import (
@@ -11,7 +14,8 @@ from authlib.oauth2.rfc7523.token import (
 
 from gn_auth.debug import __pk__
 from gn_auth.auth.db.sqlite3 import with_db_connection
-from gn_auth.auth.authentication.users import user_by_id
+from gn_auth.auth.authentication.users import User, user_by_id
+from gn_auth.auth.authentication.oauth2.models.oauth2client import OAuth2Client
 
 
 class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
@@ -48,6 +52,36 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
             "jti": str(uuid.uuid4()),
             "oauth2_client_id": str(client.client_id)
         }
+
+    def generate(# pylint: disable=[too-many-arguments]
+            self,
+            grant_type: str,
+            client: OAuth2Client,
+            user: Optional[User] = None,
+            scope: Optional[str] = None,
+            expires_in: Optional[int] = None
+    ) -> dict:
+        """Generate a bearer token for OAuth 2.0 authorization token endpoint.
+
+        :param client: the client that making the request.
+        :param grant_type: current requested grant_type.
+        :param user: current authorized user.
+        :param expires_in: if provided, use this value as expires_in.
+        :param scope: current requested scope.
+        :return: Token dict
+        """
+
+        token_data = self.get_token_data(grant_type, client, expires_in, user, scope)
+        access_token = jwt.encode({"alg": self.alg}, token_data, key=self.secret_key, check=False)
+        token = {
+            "token_type": "Bearer",
+            "access_token": to_native(access_token)
+        }
+        if expires_in:
+            token["expires_in"] = expires_in
+        if scope:
+            token["scope"] = scope
+        return token
 
 
     def __call__(# pylint: disable=[too-many-arguments]

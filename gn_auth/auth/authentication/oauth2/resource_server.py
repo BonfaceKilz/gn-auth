@@ -43,6 +43,11 @@ class JWTBearerTokenValidator(_JWTBearerTokenValidator):
         self._last_jwks_update = datetime.now(tz=timezone.utc)
         self._refresh_frequency = timedelta(hours=int(
             extra_attributes.get("jwt_refresh_frequency_hours", 6)))
+        self.claims_options = {
+            'exp': {'essential': False},
+            'client_id': {'essential': True},
+            'grant_type': {'essential': True},
+        }
 
     def __refresh_jwks__(self):
         now = datetime.now(tz=timezone.utc)

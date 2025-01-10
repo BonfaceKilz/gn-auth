@@ -1,5 +1,6 @@
 """JWT as Authorisation Grant"""
 import uuid
+import time
 
 from flask import current_app as app
 
@@ -24,8 +25,20 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
             self, grant_type, client, expires_in=None, user=None, scope=None
     ):
         """Post process data to prevent JSON serialization problems."""
-        tokendata = super().get_token_data(
-            grant_type, client, expires_in, user, scope)
+        issued_at = int(time.time())
+        tokendata = {
+            "scope": self.get_allowed_scope(client, scope),
+            "grant_type": grant_type,
+            "iat": issued_at,
+            "client_id": client.get_client_id()
+        }
+        if isinstance(expires_in, int) and expires_in > 0:
+            tokendata["exp"] = issued_at + expires_in
+        if self.issuer:
+            tokendata["iss"] = self.issuer
+        if user:
+            tokendata["sub"] = self.get_sub_value(user)
+
         return {
             **{
                 key: str(value) if key.endswith("_id") else value

@@ -6,43 +6,57 @@
 
 {%block content%}
 {{flash_messages()}}
-<legend style="margin-top: 20px;">User Credentials</legend>
 <div class="container" style="min-width: 1250px;">
-<form method="POST" class="form-horizontal" action="{{url_for(
-                            'oauth2.auth.authorise',
-                            response_type=response_type,
-                            client_id=client.client_id,
-                            redirect_uri=redirect_uri)}}">
-  <input type="hidden" name="response_type" value="{{response_type}}" />
-  <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
-  <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
-  <input type="hidden" name="client_id" value="{{client.client_id}}" />
-  <div class="form-group">
-    <label for="user:email" class="form-label col-xs-1">Email</label>
-    <input type="email" name="user:email" id="user:email" required="required"
-	   class="controls col-xs-3" size="50"/>
-  </div>
+  <form method="POST"
+        class="form-horizontal"
+        action="{{url_for(
+                'oauth2.auth.authorise',
+                response_type=response_type,
+                client_id=client.client_id,
+                redirect_uri=redirect_uri)}}"
+        style="max-width: 700px;">
+    <legend style="margin-top: 20px;">Sign In</legend>
 
-  <div class="form-group">
-    <label for="user:password" class="form-label col-xs-1">Password</label>
-    <input type="password" name="user:password" id="user:password"
-	   required="required" class="controls col-xs-3" size="50"/>
-  </div>
+    <input type="hidden" name="response_type" value="{{response_type}}" />
+    <input type="hidden" name="redirect_uri" value="{{redirect_uri}}" />
+    <input type="hidden" name="scope" value="{{scope | join(' ')}}" />
+    <input type="hidden" name="client_id" value="{{client.client_id}}" />
 
-  <div class="form-group">
-    <label for="authorise" class="form-label col-xs-1"></label>
-    <div class="controls col-xs-3">
-      <input type="submit" value="Log in" class="btn btn-primary col-2" style="margin-left: -15px;"/>
-      {%if display_forgot_password%}
-      <a href="{{url_for('oauth2.users.forgot_password',
-              client_id=client.client_id,
-              redirect_uri=redirect_uri,
-              response_type=response_type)}}"
-        title="Click here to change your password."
-        class="form-text text-danger col-2">Forgot Password</a>
-      {%endif%}
+    <div class="form-group">
+      <label for="user:email" class="control-label col-xs-2">Email</label>
+      <div class="col-xs-10">
+        <input type="email"
+               name="user:email"
+               id="user:email"
+               required="required"
+	       class="form-control" />
+      </div>
     </div>
-  </div>
-</form>
+
+    <div class="form-group">
+      <label for="user:password" class="control-label col-xs-2">Password</label>
+      <div class="col-xs-10">
+        <input type="password"
+               name="user:password"
+               id="user:password"
+	       required="required"
+               class="form-control" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="controls col-xs-offset-2 col-xs-10">
+        <input type="submit" value="Sign in" class="btn btn-primary" />
+        {%if display_forgot_password%}
+        <a href="{{url_for('oauth2.users.forgot_password',
+                 client_id=client.client_id,
+                 redirect_uri=redirect_uri,
+                 response_type=response_type)}}"
+           title="Click here to change your password."
+           class="form-text text-danger">Forgot Password</a>
+        {%endif%}
+      </div>
+    </div>
+  </form>
 </div>
 {%endblock%}

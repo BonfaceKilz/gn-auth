@@ -7,7 +7,7 @@ from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.requests import request_json
 from gn_auth.auth.db.sqlite3 import with_db_connection
 from gn_auth.auth.authentication.oauth2.resource_server import require_oauth
-from gn_auth.auth.authorisation.resources.groups.models import user_group
+from gn_auth.auth.authorisation.resources.groups.models import user_group, admin_group
 
 from .models import (create_resource,
                      link_data_to_resource,
@@ -83,7 +83,14 @@ def create_population_resource():
 
             return Right({"formdata": form, "group": usergroup})
 
-        return user_group(conn, _token.user).then(
+        def __default_group_if_none__(group) -> Either:
+            if group.is_nothing():
+                return admin_group(conn)
+            return Right(group.value)
+
+        return __default_group_if_none__(
+            user_group(conn, _token.user)
+        ).then(
             lambda group: __check_form__(request_json(), group)
         ).then(
             lambda formdata: {

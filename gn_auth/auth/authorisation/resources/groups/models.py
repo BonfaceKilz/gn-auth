@@ -8,6 +8,8 @@ from typing import Any, Sequence, Iterable, Optional
 import sqlite3
 from flask import g
 from pymonad.maybe import Just, Maybe, Nothing
+from pymonad.either import Left, Right, Either
+from pymonad.tools import monad_from_none_or_value
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.authentication.users import User, user_by_id
@@ -497,3 +499,23 @@ def add_resources_to_group(conn: db.DbConnection,
                 "group_id": str(group.group_id),
                 "resource_id": str(rsc.resource_id)
             } for rsc in resources))
+
+
+def admin_group(conn: db.DbConnection) -> Either:
+    """Return a group where at least one system admin is a member."""
+    query = (
+        "SELECT DISTINCT g.group_id, g.group_name, g.group_metadata "
+        "FROM roles AS r INNER JOIN user_roles AS ur ON r.role_id=ur.role_id "
+        "INNER JOIN group_users AS gu ON ur.user_id=gu.user_id "
+        "INNER JOIN groups AS g ON gu.group_id=g.group_id "
+        "WHERE role_name='system-administrator'")
+    with db.cursor(conn) as cursor:
+        cursor.execute(query)
+        return monad_from_none_or_value(
+            Left("There is no group of which the system admininstrator is a "
+                 "member."),
+            lambda row: Right(Group(
+                UUID(row["group_id"]),
+                row["group_name"],
+                json.loads(row["group_metadata"]))),
+            cursor.fetchone())

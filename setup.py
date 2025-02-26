@@ -24,7 +24,7 @@ setup(author="Frederick M. Muriithi",
           "redis>=3.5.3",
           "requests>=2.25.1",
           "flask-cors>=3.0.9",
-          "xapian-bindings",
+          # "xapian-bindings", # Causes guix builds to fail for an unknown reason
           "gn-libs>=0.0.0"
       ],
       include_package_data=True,

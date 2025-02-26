@@ -5,10 +5,10 @@ from datetime import datetime
 
 from flask import Flask, current_app, request as flask_request
 from authlib.jose import KeySet
+from authlib.oauth2.rfc6749 import OAuth2Request
 from authlib.oauth2.rfc6749.errors import InvalidClientError
 from authlib.integrations.flask_oauth2 import AuthorizationServer
-from authlib.oauth2.rfc6749 import OAuth2Request
-from authlib.integrations.flask_helpers import create_oauth_request
+from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 
 from gn_auth.auth.db import sqlite3 as db
 from gn_auth.auth.jwks import (
@@ -102,8 +102,16 @@ class JsonAuthorizationServer(AuthorizationServer):
 
     def create_oauth2_request(self, request):
         """Create an OAuth2 Request from the flask request."""
-        res = create_oauth_request(request, OAuth2Request, True)
-        return res
+        match flask_request.headers.get("Content-Type"):
+            case "application/json":
+                req = OAuth2Request(flask_request.method,
+                                     flask_request.url,
+                                     flask_request.get_json(),
+                                     flask_request.headers)
+            case _:
+                req = FlaskOAuth2Request(flask_request)
+
+        return req
 
 
 def setup_oauth2_server(app: Flask) -> None:

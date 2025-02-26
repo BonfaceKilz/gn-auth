@@ -30,7 +30,7 @@ migrations_tables_and_indexes = (
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "migration_file,the_table,the_index", migrations_tables_and_indexes)
-def test_index_created(# pylint: disable=[too-many-arguments]
+def test_index_created(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         auth_testdb_path, auth_migrations_dir, backend, migration_file,
         the_table, the_index):
     """
@@ -61,7 +61,7 @@ def test_index_created(# pylint: disable=[too-many-arguments]
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "migration_file,the_table,the_index", migrations_tables_and_indexes)
-def test_index_dropped(# pylint: disable=[too-many-arguments]
+def test_index_dropped(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         auth_testdb_path, auth_migrations_dir, backend, migration_file,
         the_table, the_index):
     """

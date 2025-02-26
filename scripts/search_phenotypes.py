@@ -26,7 +26,7 @@ def do_search(
     """Do the search and return the results"""
     search_uri = urljoin(host, (f"search/?page={page}&per_page={per_page}"
                                 f"&type=phenotype&query={query}"))
-    response = requests.get(search_uri)
+    response = requests.get(search_uri, timeout=300)
     results = response.json()
     if len(results) > 0:
         return (item for item in results)
@@ -75,7 +75,7 @@ def expire_redis_results(redisconn: redis.Redis, redisname: str):
 @click.option(
     "--redis-uri", default="redis://:@localhost:6379/0",
     help="The URI to the redis server.")
-def search(# pylint: disable=[too-many-arguments, too-many-locals]
+def search(# pylint: disable=[too-many-arguments, too-many-positional-arguments, too-many-locals]
         species: str, query: str, job_id: uuid.UUID, host: str, per_page: int,
         selected: str, auth_db_uri: str, gn3_db_uri: str, redis_uri: str):
     """

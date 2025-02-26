@@ -34,18 +34,18 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
                     else Nothing)
             ).maybe(None, lambda _tok: _tok)
 
-    def authenticate_user(self, credential):
+    def authenticate_user(self, refresh_token):
         """Check that user is valid for given token."""
         with connection(app.config["AUTH_DB"]) as conn:
             try:
-                return user_by_id(conn, credential.user.user_id)
+                return user_by_id(conn, refresh_token.user.user_id)
             except NotFoundError as _nfe:
                 return None
 
         return None
 
-    def revoke_old_credential(self, credential):
+    def revoke_old_credential(self, refresh_token):
         """Revoke any old refresh token after issuing new refresh token."""
         with connection(app.config["AUTH_DB"]) as conn:
-            if credential.parent_of is not None:
-                revoke_refresh_token(conn, credential)
+            if refresh_token.parent_of is not None:
+                revoke_refresh_token(conn, refresh_token)

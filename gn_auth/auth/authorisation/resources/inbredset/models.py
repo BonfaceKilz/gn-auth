@@ -62,7 +62,7 @@ def assign_inbredset_group_owner_role(
     return resource
 
 
-def link_data_to_resource(# pylint: disable=[too-many-arguments]
+def link_data_to_resource(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         cursor: sqlite3.Cursor,
         resource_id: UUID,
         species_id: int,

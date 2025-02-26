@@ -196,7 +196,7 @@ def register_user() -> Response:
             current_app.logger.error(traceback.format_exc())
             raise(UserRegistrationError(f"Email Error: {str(enve)}")) from enve
 
-    raise Exception(
+    raise Exception(# pylint: disable=[broad-exception-raised]
         "unknown_error", "The system experienced an unexpected error.")
 
 def delete_verification_code(cursor, code: str):

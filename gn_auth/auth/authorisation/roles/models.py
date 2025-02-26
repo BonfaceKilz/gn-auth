@@ -271,7 +271,7 @@ def role_by_id(conn: db.DbConnection, role_id: UUID) -> Optional[Role]:
 
     _roles = db_rows_to_roles(results)
     if len(_roles) > 1:
-        raise Exception("Data corruption: Expected a single role.")
+        raise Exception("Data corruption: Expected a single role.")# pylint: disable=[broad-exception-raised]
 
     return _roles[0]
 

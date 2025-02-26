@@ -137,7 +137,7 @@ def view_resource_data(resource_id: UUID) -> Response:
     with require_oauth.acquire("profile group resource") as the_token:
         db_uri = app.config["AUTH_DB"]
         count_per_page = __safe_get_requests_count__("count_per_page")
-        offset = (__safe_get_requests_page__("page") - 1)
+        offset = __safe_get_requests_page__("page") - 1
         with db.connection(db_uri) as conn:
             resource = resource_by_id(conn, the_token.user, resource_id)
             return jsonify(resource_data(

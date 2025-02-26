@@ -20,7 +20,7 @@ from ....db import sqlite3 as db
 from ....authentication.users import User
 from ....authentication.oauth2.models.oauth2token import OAuth2Token
 
-__FIVE_HOURS__ = (60 * 60 * 5)
+__FIVE_HOURS__ = 60 * 60 * 5
 
 def can_masquerade(func):
     """Security decorator."""

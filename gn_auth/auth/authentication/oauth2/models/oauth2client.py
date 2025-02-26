@@ -74,6 +74,7 @@ class OAuth2Client(ClientMixin):
             return KeySet([JsonWebKey.import_key(key)
                            for key in requests.get(
                                    jwksuri,
+                                   timeout=300,
                                    allow_redirects=True).json()["jwks"]])
         except requests.ConnectionError as _connerr:
             app.logger.debug(

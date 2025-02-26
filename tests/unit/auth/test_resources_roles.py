@@ -63,7 +63,7 @@ def test_create_group_role(mocker, fxtr_users_in_group, fxtr_oauth2_clients, use
     "user,expected", tuple(zip(conftest.TEST_USERS[0:1], (
         Role(UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_role",
              True, PRIVILEGES),))))
-def test_create_role(# pylint: disable=[too-many-arguments, unused-argument]
+def test_create_role(# pylint: disable=[too-many-arguments, too-many-positional-arguments, unused-argument]
         fxtr_app,
         auth_testdb_path,
         mocker,

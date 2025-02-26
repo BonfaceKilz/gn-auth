@@ -25,7 +25,7 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
 
     DEFAULT_EXPIRES_IN = 300
 
-    def get_token_data(#pylint: disable=[too-many-arguments]
+    def get_token_data(#pylint: disable=[too-many-arguments, too-many-positional-arguments]
             self, grant_type, client, expires_in=None, user=None, scope=None
     ):
         """Post process data to prevent JSON serialization problems."""
@@ -53,7 +53,7 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
             "oauth2_client_id": str(client.client_id)
         }
 
-    def generate(# pylint: disable=[too-many-arguments]
+    def generate(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
             self,
             grant_type: str,
             client: OAuth2Client,
@@ -84,7 +84,7 @@ class JWTBearerTokenGenerator(_JWTBearerTokenGenerator):
         return token
 
 
-    def __call__(# pylint: disable=[too-many-arguments]
+    def __call__(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
             self, grant_type, client, user=None, scope=None, expires_in=None,
             include_refresh_token=True
     ):

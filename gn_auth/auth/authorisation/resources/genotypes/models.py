@@ -68,7 +68,7 @@ def attach_resources_data(
     return __attach_data__(cursor.fetchall(), resources)
 
 
-def insert_and_link_data_to_resource(# pylint: disable=[too-many-arguments]
+def insert_and_link_data_to_resource(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         cursor,
         resource_id: uuid.UUID,
         group_id: uuid.UUID,

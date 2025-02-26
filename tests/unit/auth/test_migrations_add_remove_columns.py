@@ -51,7 +51,7 @@ def rolled_back_successfully(adding: bool, result_str: str, column: str) -> bool
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "migration_file,the_table,the_column,adding", TEST_PARAMS)
-def test_apply_add_remove_column(# pylint: disable=[too-many-arguments]
+def test_apply_add_remove_column(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         auth_migrations_dir, auth_testdb_path, backend, migration_file,
         the_table, the_column, adding):
     """
@@ -84,7 +84,7 @@ def test_apply_add_remove_column(# pylint: disable=[too-many-arguments]
 @pytest.mark.unit_test
 @pytest.mark.parametrize(
     "migration_file,the_table,the_column,adding", TEST_PARAMS)
-def test_rollback_add_remove_column(# pylint: disable=[too-many-arguments]
+def test_rollback_add_remove_column(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         auth_migrations_dir, auth_testdb_path, backend, migration_file,
         the_table, the_column, adding):
     """

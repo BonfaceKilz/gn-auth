@@ -40,7 +40,7 @@ test_params = (
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize("migration_file,query,query_params,data", test_params)
-def test_apply_insert(# pylint: disable=[too-many-arguments]
+def test_apply_insert(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         auth_migrations_dir, backend, auth_testdb_path, migration_file, query,
         query_params, data):
     """
@@ -65,7 +65,7 @@ def test_apply_insert(# pylint: disable=[too-many-arguments]
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize("migration_file,query,query_params,data", test_params)
-def test_rollback_insert(# pylint: disable=[too-many-arguments]
+def test_rollback_insert(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         auth_migrations_dir, backend, auth_testdb_path, migration_file, query,
         query_params, data):
     """

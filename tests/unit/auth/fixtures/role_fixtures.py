@@ -163,7 +163,7 @@ def fxtr_system_roles(fxtr_users):
 
 
 @pytest.fixture(scope="function")
-def fxtr_resource_user_roles(# pylint: disable=[too-many-arguments, too-many-locals]
+def fxtr_resource_user_roles(# pylint: disable=[too-many-arguments, too-many-locals, too-many-positional-arguments]
         fxtr_resources,
         fxtr_users_in_group,
         fxtr_resource_ownership,

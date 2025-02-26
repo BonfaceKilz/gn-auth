@@ -27,7 +27,7 @@ PRIVILEGES = (
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize("user", tuple(conftest.TEST_USERS[0:3]))
-def test_create_group_fails(# pylint: disable=[too-many-arguments]
+def test_create_group_fails(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         fxtr_app, auth_testdb_path, mocker, fxtr_resource_user_roles, fxtr_oauth2_clients, user):# pylint: disable=[unused-argument]
     """
     GIVEN: an authenticated user
@@ -71,7 +71,7 @@ def __cleanup_create_group__(conn, user, group):
     ((conftest.TEST_USERS[3], Group(
         UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"), "a_test_group",
         {"group_description": "A test group"})),))
-def test_create_group_succeeds(# pylint: disable=[too-many-arguments, unused-argument]
+def test_create_group_succeeds(# pylint: disable=[too-many-arguments too-many-positional-arguments, unused-argument]
         fxtr_app,
         auth_testdb_path,
         mocker,
@@ -102,7 +102,7 @@ def test_create_group_succeeds(# pylint: disable=[too-many-arguments, unused-arg
 
 @pytest.mark.unit_test
 @pytest.mark.parametrize("user", conftest.TEST_USERS[1:])
-def test_create_group_raises_exception_with_non_privileged_user(# pylint: disable=[too-many-arguments]
+def test_create_group_raises_exception_with_non_privileged_user(# pylint: disable=[too-many-arguments too-many-positional-arguments]
         fxtr_app, auth_testdb_path, mocker, fxtr_users, fxtr_oauth2_clients, user):# pylint: disable=[unused-argument]
     """
     GIVEN: an authenticated user, without appropriate privileges

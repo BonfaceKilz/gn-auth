@@ -73,7 +73,7 @@ def create_save_token_func(token_model: type) -> Callable:
 
 def make_jwt_token_generator(app):
     """Make token generator function."""
-    def __generator__(# pylint: disable=[too-many-arguments]
+    def __generator__(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
             grant_type,
             client,
             user=None,

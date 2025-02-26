@@ -22,7 +22,7 @@ def linked_mrna_data(conn: authdb.DbConnection) -> Iterable[dict]:
                   "You do not have sufficient privileges to link data to (a) "
                   "group(s)."),
               oauth2_scope="profile group resource")
-def ungrouped_mrna_data(# pylint: disable=[too-many-arguments]
+def ungrouped_mrna_data(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         authconn: authdb.DbConnection, gn3conn: gn3db.Connection,
         search_query: str, selected: tuple[dict, ...] = tuple(),
         limit: int = 10000, offset: int = 0) -> tuple[

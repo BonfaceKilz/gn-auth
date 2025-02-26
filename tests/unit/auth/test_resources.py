@@ -30,7 +30,7 @@ create_resource_failure = {
         (Resource(
             uuid.UUID("d32611e3-07fc-4564-b56c-786c6db6de2b"),
             "test_resource", resource_category, False),))))
-def test_create_resource(# pylint: disable=[too-many-arguments, unused-argument]
+def test_create_resource(# pylint: disable=[too-many-arguments, too-many-positional-arguments, unused-argument]
         mocker,
         fxtr_users_in_group,
         fxtr_resource_user_roles,

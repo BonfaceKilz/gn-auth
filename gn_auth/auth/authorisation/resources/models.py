@@ -39,7 +39,7 @@ from .phenotypes.models import (
 @authorised_p(("group:resource:create-resource",),
               error_description="Insufficient privileges to create a resource",
               oauth2_scope="profile resource")
-def create_resource(# pylint: disable=[too-many-arguments]
+def create_resource(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         cursor: sqlite3.Cursor,
         resource_name: str,
         resource_category: ResourceCategory,

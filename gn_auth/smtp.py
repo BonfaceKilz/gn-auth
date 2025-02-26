@@ -16,7 +16,7 @@ def __read_mime__(filepath) -> dict:
     return {}
 
 
-def build_email_message(# pylint: disable=[too-many-arguments]
+def build_email_message(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         from_address: str,
         to_addresses: tuple[Address, ...],
         subject: str,
@@ -40,7 +40,7 @@ def build_email_message(# pylint: disable=[too-many-arguments]
     return msg
 
 
-def send_message(# pylint: disable=[too-many-arguments]
+def send_message(# pylint: disable=[too-many-arguments, too-many-positional-arguments]
         smtp_user: str,
         smtp_passwd: str,
         message: EmailMessage,

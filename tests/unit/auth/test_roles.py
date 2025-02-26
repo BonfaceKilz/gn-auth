@@ -26,7 +26,7 @@ PRIVILEGES = (
 @pytest.mark.parametrize(
     "user,expected", tuple(zip(conftest.TEST_USERS[1:], (
         create_role_failure, create_role_failure, create_role_failure))))
-def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[too-many-arguments, unused-argument]
+def test_create_role_raises_exception_for_unauthorised_users(# pylint: disable=[too-many-arguments, unused-argument, too-many-positional-arguments]
         fxtr_app,
         auth_testdb_path,
         mocker,
